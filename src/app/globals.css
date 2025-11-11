@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @layer base {
+  :root {
+    --border-radius: 12px;
+    --primary-color: hsl(255, 60%, 51%);
+    --text-primary:#0a100d;
+    --bg-primary: hsl(32, 100%, 97%);
+    --bg-primary:#f6f5ae;
+    --inset-drop-shadow:inset 4px 8px 32px 0px rgba(255,255,255,.055);
+
+    @media only screen and (max-width: 62.5em) {
+      font-size: 51.25%;
+    }
+  
+    @media only screen and (max-width: 56.25em) {
+      font-size: 49%;
+    }
+  
+    @media only screen and (max-width: 37.5em) {
+      font-size: 46%;
+    }
+  
+    @media only screen and (min-width: 140.5em) {
+      font-size: 75%;
+    }
+  }
+
+  input[type="text"],input[type="password"],input[type="email"],input[type="text"]:focus{
+    @apply bg-transparent;
+  }
+
+  input[type="date"]{
+    border-radius:1.6rem;
+    appearance:none;
+    outline:none;
+    border:none;
+    color:rgb(116, 108, 199);
+  }
+}
+
+h1 {
+  font-size: 36px;
+  font-weight: bold;
+}
+
+.body {
+  background-color: var(--body-bg);
+  color: var(--body-font-color);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.table_paginator {
+  background-color: "#252047";
+  border-radius: 12px;
+  color: white;
+} */
