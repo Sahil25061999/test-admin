@@ -244,4 +244,27 @@ export const clientApi = {
     console.log("categories by metal type", data);
     return data;
   },
+
+  // LMS Screen endpoints
+  getScreenConfig: async (screen_name: string) => {
+    const response = await fetch(`/api/lms/screen/${screen_name}`);
+    return response.json();
+  },
+
+  updateScreenConfig: async (
+    screen_name: string,
+    config_data: {
+      priorityList?: string[];
+      sections?: Record<string, any>;
+    }
+  ) => {
+    const response = await fetch(`/api/lms/screen/${screen_name}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(config_data),
+    });
+    return response.json();
+  },
 };
