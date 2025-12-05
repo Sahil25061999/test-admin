@@ -145,7 +145,7 @@ export default function Page() {
         gender: data.gender || "UNISEX",
         meta: meta,
         images: images,
-        metal: metalType,
+        metal: jewelleryMetalType,
       };
 
       const response = await clientApi.createJewellery(jewelleryData);

@@ -2,7 +2,22 @@
 import React, { useState } from "react";
 import { clientApi } from "../../../lib/client-api";
 
-type ScreenName = "HOME_SCREEN_CONFIG" | "AUTOSAVINGS_CONFIG" | "SELL_CONFIG";
+type ScreenName =
+  | "HOME_SCREEN_CONFIG"
+  | "AUTOSAVINGS_CONFIG"
+  | "SELL_CONFIG"
+  | "BUY_CONFIG"
+  | "VOUCHER_SCREEN_CONFIG"
+  | "REFERRAL_SCREEN_CONFIG"
+  | "LINKED_BANK_ACCOUNTS_CONFIG"
+  | "IDENTITY_VERIFICATION_CONFIG"
+  | "PORTFOLIO_CONFIG"
+  | "JEWELLERY_CONFIG"
+  | "CUSTODY_WALLET_CONFIG"
+  | "ECOMMERCE_COINS_CONFIG"
+  | "AUTOSAVINGS_SETUP_CONFIG"
+  | "GOLD_VAULT_CONFIG"
+  | "SILVER_VAULT_CONFIG";
 
 const Page = () => {
   const [selectedScreen, setSelectedScreen] = useState<ScreenName>("HOME_SCREEN_CONFIG");
@@ -18,6 +33,18 @@ const Page = () => {
     { value: "HOME_SCREEN_CONFIG", label: "Home Screen" },
     { value: "AUTOSAVINGS_CONFIG", label: "Autosavings" },
     { value: "SELL_CONFIG", label: "Sell" },
+    { value: "BUY_CONFIG", label: "Buy" },
+    { value: "VOUCHER_SCREEN_CONFIG", label: "Voucher" },
+    { value: "REFERRAL_SCREEN_CONFIG", label: "Referral" },
+    { value: "LINKED_BANK_ACCOUNTS_CONFIG", label: "Linked Bank Accounts" },
+    { value: "IDENTITY_VERIFICATION_CONFIG", label: "Identity Verification" },
+    { value: "PORTFOLIO_CONFIG", label: "Portfolio" },
+    { value: "JEWELLERY_CONFIG", label: "Jewellery" },
+    { value: "CUSTODY_WALLET_CONFIG", label: "Custody Wallet" },
+    { value: "ECOMMERCE_COINS_CONFIG", label: "Ecommerce Coins" },
+    { value: "AUTOSAVINGS_SETUP_CONFIG", label: "Autosavings Setup" },
+    { value: "GOLD_VAULT_CONFIG", label: "Gold Vault" },
+    { value: "SILVER_VAULT_CONFIG", label: "Silver Vault" },
   ];
 
   // Convert screen name to API format
@@ -26,6 +53,18 @@ const Page = () => {
       HOME_SCREEN_CONFIG: "home_screen",
       AUTOSAVINGS_CONFIG: "autosavings",
       SELL_CONFIG: "sell",
+      BUY_CONFIG: "buy",
+      VOUCHER_SCREEN_CONFIG: "voucher_screen",
+      REFERRAL_SCREEN_CONFIG: "referral_screen",
+      LINKED_BANK_ACCOUNTS_CONFIG: "linked_bank_accounts",
+      IDENTITY_VERIFICATION_CONFIG: "identity_verification",
+      PORTFOLIO_CONFIG: "portfolio",
+      JEWELLERY_CONFIG: "jewellery",
+      CUSTODY_WALLET_CONFIG: "custody_wallet",
+      ECOMMERCE_COINS_CONFIG: "ecommerce_coins",
+      AUTOSAVINGS_SETUP_CONFIG: "autosavings_setup",
+      GOLD_VAULT_CONFIG: "gold_vault",
+      SILVER_VAULT_CONFIG: "silver_vault",
     };
     return mapping[screenName];
   };
