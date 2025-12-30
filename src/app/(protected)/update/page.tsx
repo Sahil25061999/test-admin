@@ -17,7 +17,13 @@ type ScreenName =
   | "ECOMMERCE_COINS_CONFIG"
   | "AUTOSAVINGS_SETUP_CONFIG"
   | "GOLD_VAULT_CONFIG"
-  | "SILVER_VAULT_CONFIG";
+  | "SILVER_VAULT_CONFIG"
+  | "MAINTENANCE_CONFIG"
+  | "WITHDRAWAL_OPTIONS_CONFIG"
+  | "TRANSACTIONS_CONFIG"
+  | "SOCIAL_MEDIA_CONFIG"
+  | "PAYMENT_OPTIONS_CONFIG"
+  | "FAQ_SCREEN_CONFIG";
 
 const Page = () => {
   const [selectedScreen, setSelectedScreen] = useState<ScreenName>("HOME_SCREEN_CONFIG");
@@ -45,6 +51,12 @@ const Page = () => {
     { value: "AUTOSAVINGS_SETUP_CONFIG", label: "Autosavings Setup" },
     { value: "GOLD_VAULT_CONFIG", label: "Gold Vault" },
     { value: "SILVER_VAULT_CONFIG", label: "Silver Vault" },
+    { value: "MAINTENANCE_CONFIG", label: "Maintenance" },
+    { value: "WITHDRAWAL_OPTIONS_CONFIG", label: "Withdrawal Options" },
+    { value: "TRANSACTIONS_CONFIG", label: "Transactions" },
+    { value: "SOCIAL_MEDIA_CONFIG", label: "Social Media" },
+    { value: "PAYMENT_OPTIONS_CONFIG", label: "Payment Options" },
+    { value: "FAQ_SCREEN_CONFIG", label: "FAQ" },
   ];
 
   // Convert screen name to API format
@@ -65,6 +77,12 @@ const Page = () => {
       AUTOSAVINGS_SETUP_CONFIG: "autosavings_setup",
       GOLD_VAULT_CONFIG: "gold_vault",
       SILVER_VAULT_CONFIG: "silver_vault",
+      MAINTENANCE_CONFIG: "maintenance",
+      WITHDRAWAL_OPTIONS_CONFIG: "withdrawal_options",
+      TRANSACTIONS_CONFIG: "transactions",
+      SOCIAL_MEDIA_CONFIG: "social_media",
+      PAYMENT_OPTIONS_CONFIG: "payment_options",
+      FAQ_SCREEN_CONFIG: "faq_screen",
     };
     return mapping[screenName];
   };
