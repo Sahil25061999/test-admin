@@ -7,6 +7,7 @@ import { UpiUserSearch } from "../../../../components/index.component";
 import { useToast } from "../../../../context/toast.context";
 import { Modal } from "../../../../components/Modal/Modal";
 import { useAuthAxios } from "../../../../hooks/useAuthAxios";
+import { PageHeader } from "../../../../components/dashboard/PageHeader";
 
 const columns = [
   {
@@ -177,41 +178,49 @@ export default function Page() {
 
   return (
     <div>
-      <UpiUserSearch
-        placeholder={"Enter upi number"}
-        input={upi}
-        setInput={setUpi}
-        handleSubmit={(e) => openConfirmationModal(e, setIsOpenBlockModal)}
+      <PageHeader
+        title="Blocked UPIs"
+        subtitle="List of blocked UPIs"
       />
-      <h1>Blocked Upis</h1>
+      <div className="max-w-4xl mx-auto">
+
+
+        <UpiUserSearch
+          placeholder={"Enter upi number"}
+          input={upi}
+          setInput={setUpi}
+          handleSubmit={(e) => openConfirmationModal(e, setIsOpenBlockModal)}
+        />
+      </div>
+
       <section className="mt-4">
         <Table
           // className=""
           rootClassName={"table_paginator"}
           columns={columns}
           dataSource={data}
-          // onChange={(pagination, filters) => {
-          //   if (status.length == 0 && !filters?.Status) return;
-          //   let existingStatus = status.sort();
-          //   let newFilteredStatus = filters.Status?.sort();
-          //   if (
-          //     JSON.stringify(existingStatus) ===
-          //     JSON.stringify(newFilteredStatus)
-          //   )
-          //     return;
-          //   setStatus(() => (filters.Status ? filters.Status : []));
-          //   console.log("page set");
-          //   setCurrentPage(() => 1);
-          //   setLimit(() => 10);
-          // }}
-          // pagination={{
-          //   total: totalPages * limit,
-          //   onChange(page, pageSize) {
-          //     console.log("page set2");
-          //     setCurrentPage(() => page);
-          //     setLimit(() => pageSize);
-          //   },
-          // }}
+        // onChange={(pagination, filters) => {
+        //   if (status.length == 0 && !filters?.Status) return;
+        //   let existingStatus = status.sort();
+        //   let newFilteredStatus = filters.Status?.sort();
+        //   if (
+        //     JSON.stringify(existingStatus) ===
+        //     JSON.stringify(newFilteredStatus)
+        //   )
+        //     return;
+        //   setStatus(() => (filters.Status ? filters.Status : []));
+        //   console.log("page set");
+        //   setCurrentPage(() => 1);
+        //   setLimit(() => 10);
+        // }}
+        // pagination={{
+        //   total: totalPages * limit,
+        //   onChange(page, pageSize) {
+        //     console.log("page set2");
+        //     setCurrentPage(() => page);
+        //     setLimit(() => pageSize);
+        //   },
+        // }}
         />
       </section>
       <Modal

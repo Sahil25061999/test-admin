@@ -1,5 +1,4 @@
 "use client";
-
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -9,23 +8,18 @@ import { useAuth } from "../context/auth";
 import { signIn } from "next-auth/react";
 import CryptoJS from 'crypto-js';
 import { useAuthAxios } from "../hooks/useAuthAxios";
+import { Loader2 } from "lucide-react";
+
 export const encryptToken = (plainText, key) => {
   try {
-    // Convert key and plainText to CryptoJS format
-    const keyBytes = CryptoJS.enc.Hex.parse(key); // Key in Hex format
-    const iv = CryptoJS.lib.WordArray.random(16); // Generate 16-byte IV
-
-    // Encrypt using AES-CBC with PKCS7 padding (default)
+    const keyBytes = CryptoJS.enc.Hex.parse(key);
+    const iv = CryptoJS.lib.WordArray.random(16);
     const encrypted = CryptoJS.AES.encrypt(plainText, keyBytes, {
       iv: iv,
       mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7,
     });
-
-    // Concatenate IV and ciphertext
     const ivCipher = iv.concat(encrypted.ciphertext as any);
-
-    // Base64 encode the result
     return CryptoJS.enc.Base64.stringify(ivCipher);
   } catch (error) {
     console.error("Encryption Error:", error);
@@ -38,13 +32,29 @@ export const LoginForm = () => {
     phone: "",
     otp: "",
   });
+  const [errors, setErrors] = useState<{
+    phone?: string;
+    otp?: string;
+  }>({});
   const [displayOtpInput, setDisplayOtpInput] = useState(false);
   const [showPassword, setShowPassword] = useState(true);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { setToken, setPhone,setRefreshToken } = useAuth();
+  const { setToken, setPhone, setRefreshToken } = useAuth();
   const router = useRouter();
-  const apiInstance = useAuthAxios()
+  const apiInstance = useAuthAxios();
+
+  const validatePhone = (phone: string) => {
+    if (!phone) return "Phone number is required";
+    if (!/^\d{10}$/.test(phone)) return "Enter a valid 10-digit phone number";
+    return "";
+  };
+
+  const validateOtp = (otp: string) => {
+    if (!otp) return "OTP is required";
+    if (otp.length !== 6) return "Invalid OTP";
+    return "";
+  };
 
   const togglePasswordVisibility = (e: FormEvent) => {
     e.preventDefault();
@@ -52,76 +62,99 @@ export const LoginForm = () => {
   };
 
   const handleInputs = (e: ChangeEvent<HTMLInputElement>, userField: string) => {
-    if(displayOtpInput && userField !== "otp"){
+    if (displayOtpInput && userField !== "otp") {
       setDisplayOtpInput(false);
     }
-    setUserCredentials((prev) => ({ ...prev, [userField]: e.target.value }));
+    setUserCredentials((prev) => ({
+      ...prev,
+      [userField]: e.target.value,
+    }));
   };
 
-  const handleVerifyOtp = async () => {
-  try {
+  const handleVerifyOtp = async (e: FormEvent) => {
+    e.preventDefault();
+
+    const otpError = validateOtp(userCredentials.otp);
+    if (otpError) {
+      setErrors({ otp: otpError });
+      return;
+    }
+
+    setErrors({});
     setLoading(true);
-    const res = await signIn("credentials", {
-      redirect: true,
-      phone: userCredentials.phone,
-      otp: userCredentials.otp,
-      callbackUrl: "/dashboard",
-    });
 
-    // if (res?.ok) {
-    //   toast({ title: "Success", description: "Welcome!", variant: "success" });
+    try {
+      await signIn("credentials", {
+        redirect: true,
+        phone: userCredentials.phone,
+        otp: userCredentials.otp,
+        callbackUrl: "/dashboard",
+      });
+    } catch (err) {
+      setErrors({ otp: "Invalid OTP" });
+      toast({
+        title: "Error",
+        description: "Invalid OTP",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    //   if (!["7010935074", "7401592702", "0000123456"].includes(userCredentials.phone)) {
-    //     router.push("/gold-redemption");
-    //     return;
-    //   }
-    //   router.push("/dashboard");
-    // } else {
-    //   toast({ title: "Error", description: "Invalid OTP" });
-    // }
-  } catch (err) {
-    toast({ title: "Error", description: "Something went wrong." });
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
   const handleSendOtp = async (e: FormEvent) => {
     e.preventDefault();
+
+    const phoneError = validatePhone(userCredentials.phone);
+    if (phoneError) {
+      setErrors({ phone: phoneError });
+      return;
+    }
+
+    setErrors({});
     setLoading(true);
+
     try {
-      const params = {
-        countryCode: userCredentials.countryCode,
-        phone: userCredentials.phone,
-      };
       const resp = await fetch("/api/auth/send-otp", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(params),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          countryCode: userCredentials.countryCode,
+          phone: userCredentials.phone,
+        }),
       });
+
       const data = await resp.json();
+      console.log(data?.message);
 
       if (data?.success) {
         toast({
           title: "Success",
-          description: "Otp Sent Successfully",
+          description: "OTP sent successfully",
           variant: "success",
         });
         setDisplayOtpInput(true);
-        // localStorage.setItem("token", resp.data.token);
-        // document.cookie = "token" + "=" + resp.data.token + "; Path=/;";
-        // router.replace("/dashboard");
+      } else {
+        toast({
+          title: "Error",
+          description: data?.message || "Failed to send OTP",
+          variant: "error",
+        });
+        setErrors({ phone: data?.message || "Failed to send OTP" });
       }
     } catch (e) {
-      toast({
-        title: "Error",
-        description: "Try again after sometime",
-      });
-      console.error(e);
+      setErrors({ phone: "Try again later" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+
+    if (displayOtpInput) {
+      handleVerifyOtp(e);
+    } else {
+      handleSendOtp(e);
     }
   };
 
@@ -132,70 +165,86 @@ export const LoginForm = () => {
     );
     CHRYSUS_API.defaults.headers["X-Auth-Token"] = JSON.stringify(encryptedAccessToken);
     refreshInstance.defaults.headers["X-Auth-Token"] = JSON.stringify(encryptedAccessToken);
-
   }, []);
 
   return (
-    <form className="space-y-6" method="POST">
+    <form onSubmit={handleFormSubmit} className="space-y-4">
       <div>
-        <label htmlFor="phone" className="block text-xs font-medium text-gray-700 ">
-          Phone
-        </label>
-        <div className="mt-1">
-          <input
-            id="phone"
-            name="phone"
-            type="phone"
-            autoComplete="phone"
-            required
-            placeholder="Enter phone"
-            className="w-full rounded-full border text-gray-950 dark:border-white py-4 px-7 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-            onChange={(e) => handleInputs(e, "phone")}
-          />
-        </div>
+        <label className="block text-sm font-medium mb-2">Phone</label>
+        <input
+          type="tel"
+          placeholder="Enter phone number"
+          value={userCredentials.phone}
+          onChange={(e) => {
+            handleInputs(e, "phone");
+            setErrors((prev) => ({ ...prev, phone: "" }));
+          }}
+          disabled={loading}
+          className={`w-full rounded-full py-4 px-7 text-sm placeholder:text-gray-400 border ${errors.phone
+              ? "border-red-500 focus:ring-red-500"
+              : "border-gray-300 focus:ring-indigo-500"
+            } focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+        />
+        {errors.phone && (
+          <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+        )}
       </div>
+
       {displayOtpInput && (
         <div>
-          <div className="flex items-center justify-between">
-            <label htmlFor="otp" className="block text-xs font-medium text-gray-700 ">
-              otp
-            </label>
-          </div>
-          <div className="mt-1 w-full rounded-full py-2 px-4 border border-white flex">
+          <label className="block text-sm font-medium mb-2">OTP</label>
+          <div className="relative flex items-center">
             <input
-              id="otp"
-              name="otp"
-              autoComplete="current-otp"
-              required
-              placeholder="Enter otp"
+              type={showPassword ? "password" : "text"}
+              placeholder="Enter OTP"
+              value={userCredentials.otp}
               onChange={(e) => {
                 handleInputs(e, "otp");
+                setErrors((prev) => ({ ...prev, otp: "" }));
               }}
-              type={showPassword ? "password" : "text"}
-              className="border-none placeholder:text-gray-400 sm:text-sm sm:leading-6 focus:ring-0"
+              disabled={loading}
+              maxLength={6}
+              className="flex-1 bg-transparent text-sm placeholder:text-gray-400 border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-0 appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
-            <button className=" ml-auto text-sm text-slate-500" onClick={togglePasswordVisibility}>
-              {showPassword ? "Show" : "hide"}
+            <button
+              type="button"
+              onClick={togglePasswordVisibility}
+              className="text-sm text-indigo-600 hover:text-indigo-700"
+              disabled={loading}
+            >
+              {showPassword ? "Show" : "Hide"}
             </button>
           </div>
+          {errors.otp && (
+            <p className="mt-1 text-sm text-red-500">{errors.otp}</p>
+          )}
         </div>
       )}
 
-      <div className=" mt-4">
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-indigo-600 text-white py-3 rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+      >
+        {loading ? (
+          <Loader2 className="animate-spin" />
+        ) : displayOtpInput ? (
+          "Verify OTP"
+        ) : (
+          "Send OTP"
+        )}
+      </button>
+
+      {displayOtpInput && (
         <button
+          type="button"
+          onClick={handleSendOtp}
           disabled={loading}
-          onClick={displayOtpInput ? handleVerifyOtp : handleSendOtp}
-          type="submit"
-          className="flex w-full justify-center rounded-full bg-primary px-3 py-4 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          className="w-full text-indigo-600 hover:text-indigo-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "loading" : displayOtpInput ? "Verify Otp" : "Send Otp"}
+          Resend OTP
         </button>
-        {displayOtpInput ? (
-          <button className=" mt-4 text-indigo-500 cursor-pointer" onClick={handleSendOtp}>
-            Resend Otp{" "}
-          </button>
-        ) : null}
-      </div>
+      )}
     </form>
   );
 };

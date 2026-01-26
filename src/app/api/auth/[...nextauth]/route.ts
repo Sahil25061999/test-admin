@@ -12,6 +12,10 @@ const AUTHORIZED_PHONE_NUMBERS = [
   "+918248399262",
   "+918144127115",
   "+919841432183",
+  "+918624800390",
+  "+910000123456",
+  "+910000000005",
+  "+919025807876"
   // Add more authorized phone numbers as needed
 ];
 

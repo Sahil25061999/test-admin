@@ -4,6 +4,8 @@ import { Table } from "antd";
 import { clientApi } from "../../../lib/client-api";
 import { useToast } from "../../../context/toast.context";
 import { useForm } from "react-hook-form";
+import { PageHeader } from "../../../components/dashboard/PageHeader";
+import PillSelect from "../../../components/ui/PillSelect";
 
 export default function Page() {
   const [jewelleryList, setJewelleryList] = useState<any[]>([]);
@@ -517,9 +519,9 @@ export default function Page() {
   ];
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Jewellery Management</h1>
+    <div className="flex flex-col gap-8 p-6">
+      <PageHeader title="Jewellery Management" subtitle="Manage your jewellery" />
+      <div className="flex items-center justify-end flex-end">
         <div className="flex gap-4">
           <button
             onClick={() => openJewelleryModal()}
@@ -542,39 +544,39 @@ export default function Page() {
       <div className="flex flex-wrap items-center gap-4 p-4 border rounded-lg dark:border-gray-700">
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Metal Type *</label>
-          <select
+
+          <PillSelect
+            options={[
+              { label: "Gold", value: "gold" },
+              { label: "Silver", value: "silver" },
+            ]}
             value={metalType}
-            onChange={(e) => {
-              const newMetalType = e.target.value;
-              setMetalType(newMetalType);
-              setOffset(0); // Reset offset when changing metal type
-              setCategoryFilter(""); // Reset category filter
-              fetchCategoriesByMetalType(newMetalType); // Fetch categories for new metal type
+            onChange={(value) => {
+              setMetalType(value);
+              setOffset(0);
+              setCategoryFilter("");
+              fetchCategoriesByMetalType(value);
             }}
-            className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-          >
-            <option value="gold">Gold</option>
-            <option value="silver">Silver</option>
-          </select>
+          />
         </div>
 
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Gender</label>
-          <select
+
+          <PillSelect
+            options={[
+              { label: "All", value: "" },
+              { label: "Male", value: "MALE" },
+              { label: "Female", value: "FEMALE" },
+            ]}
             value={genderFilter}
-            onChange={(e) => {
-              setGenderFilter(e.target.value);
+            onChange={(value) => {
+              setGenderFilter(value);
               setOffset(0);
             }}
-            className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-          >
-            <option value="">All</option>
-            <option value="MALE">Male</option>
-            <option value="FEMALE">Female</option>
-            {/* <option value="UNISEX">Unisex</option> */}
-          </select>
+          />
         </div>
-
+        {/*
         <div className="flex flex-col">
           <label className="text-sm font-medium mb-1">Category</label>
           <select
@@ -592,6 +594,9 @@ export default function Page() {
               </option>
             ))}
           </select>
+
+
+
         </div>
 
         <div className="flex flex-col">
@@ -630,7 +635,7 @@ export default function Page() {
           >
             Next
           </button>
-        </div>
+        </div> */}
       </div>
 
       {/* Jewellery Modal */}
@@ -984,18 +989,7 @@ export default function Page() {
       {/* Categories by Metal Type Section */}
       <section className="w-full relative overflow-x-auto">
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-lg font-semibold">Categories by Metal Type</div>
-          <select
-            value={metalType}
-            onChange={(e) => {
-              setMetalType(e.target.value);
-              fetchCategoriesByMetalType(e.target.value);
-            }}
-            className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-          >
-            <option value="gold">Gold</option>
-            <option value="silver">Silver</option>
-          </select>
+          <div className="text-lg font-semibold">Categories {metalType}</div>
         </div>
         <Table
           scroll={{ x: true }}

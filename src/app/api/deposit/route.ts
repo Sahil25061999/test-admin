@@ -26,11 +26,10 @@ const encryptToken = (plainText: string, key: string) => {
     return null;
   }
 };
-
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions) as CustomSession | null;
-    
+    const session = (await getServerSession(authOptions)) as CustomSession | null;
+
     if (!session?.accessToken) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -39,41 +38,73 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { amount, phone, notes, type = 'gold' } = body;
+
+    const {
+      deposit_value,
+      phone,
+      reason,
+      metal_type,
+      txn_type = "BUY",
+      price,
+      created_at,
+      deposit_type,
+    } = body;
+
+    if (!deposit_value) {
+      return NextResponse.json(
+        { success: false, message: "deposit_value is required" },
+        { status: 400 }
+      );
+    }
 
     const chrysusApi = axios.create({
       baseURL: process.env.NEXT_PUBLIC_CHRYSUS_URI,
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${session.accessToken}`
-      }
+        Accept: "application/json",
+        Authorization: `Bearer ${session.accessToken}`,
+      },
     });
 
-    // Add encrypted auth token
     const encryptedAccessToken = encryptToken(
       "N#8v!zXq3eP$wLr7@U2jT%9kBm5Qf4Y1",
       "6f8f57715090da2632453988d9a1501b6d4f7dffed6a532f1e3a7865e837a69a"
     );
-    
+
     if (encryptedAccessToken) {
-      chrysusApi.defaults.headers["X-Auth-Token"] = JSON.stringify(encryptedAccessToken);
+      chrysusApi.defaults.headers["X-Auth-Token"] =
+        JSON.stringify(encryptedAccessToken);
     }
 
-    const endpoint = type === 'silver' ? '/admin/v1/deposit-silver' : '/admin/v1/deposit-gold';
-    const params = { amount, phone, notes };
+    const endpoint = "/admin/v1/deposit-metal";
+
+    const params = {
+      deposit_value,
+      phone,
+      reason,
+      metal_type,
+      txn_type,
+      price,
+      created_at,
+      deposit_type,
+    };
 
     const response = await chrysusApi.post(endpoint, params);
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error("Deposit API error:", error);
+    console.error(
+      "Deposit API error:",
+      JSON.stringify(error?.response?.data)
+    );
+
     return NextResponse.json(
-      { 
-        success: false, 
-        message: error.response?.data?.message || "Failed to process deposit" 
+      {
+        success: false,
+        message:
+          error.response?.data?.message || "Failed to process deposit",
       },
       { status: error.response?.status || 500 }
     );
   }
-} 
+}

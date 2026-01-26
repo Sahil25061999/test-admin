@@ -5,6 +5,7 @@ import {
 } from "../../../components/dashboard/index.dashboard.component";
 import Link from "next/link";
 import { createAuthenticatedApi } from "../../../lib/api-utils";
+import { PageHeader } from "../../../components/dashboard/PageHeader";
 
 export default async function Page() {
   // Server-side data fetching
@@ -22,7 +23,7 @@ export default async function Page() {
   try {
     const chrysusApi = await createAuthenticatedApi();
     const res = await chrysusApi.get("admin/v1/stats");
-    
+
     if (res && res.data?.success) {
       userCount = res.data.data.user.user_count;
       countOfUsersHavingGold = res.data.data.user.user_w_gold_grt_zero;
@@ -34,16 +35,14 @@ export default async function Page() {
 
   return (
     <main className=" w-full">
-      <div className=" grid grid-cols-1 lg:grid-cols-12 gap-y-4 lg:gap-4">
-        <Link 
-          target="_blank" 
-          className=" p-4 bg-purple-500 text-white font-medium rounded-full col-span-full" 
-          href={"https://auragold.retool.com/auth/login"}
-        >
-          Go to Retool
-        </Link>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Overview of key metrics and activity"
+      />
+
+      <div className=" grid grid-cols-1 py-4 lg:grid-cols-12 gap-y-4 lg:gap-4">
         <div className=" md:col-span-6">
-          <UsersStatsCard label={"Users"} stat={userCount} />
+          <UsersStatsCard label={"Users"} stat={45000} />
         </div>
         <div className=" md:col-span-6">
           <UsersStatsCard

@@ -73,7 +73,7 @@ export function TotalTxnStatsCard({ transactions }) {
   const sum = data && formatNumber(data.reduce((acc, curr) => acc + curr.value, 0));
 
   return (
-    <div className=" w-full p-2 lg:flex justify-between items-center text-floral-white rounded-3xl bg-stone-100">
+    <div className=" border-l-[5px] border-primary w-full p-2 lg:flex justify-between items-center text-floral-white rounded-sm bg-stone-100">
       <div className=" w-full flex  justify-between items-center p-4">
         <div>
           <p className=" w-full opacity-75 text-stone-500">Total Transactions</p>
@@ -92,13 +92,13 @@ export function TotalTxnStatsCard({ transactions }) {
           />
         </div>
       </div>
-      <div className=" w-full md:flex justify-between items-center gap-6 bg-stone-900 text-stone-100 rounded-3xl p-4">
+      <div className=" w-full md:flex justify-between items-center gap-6 bg-stone-900 text-stone-100 rounded-md p-4">
         <div>
           <p className=" w-full opacity-75 text-stone-50">{"Today's Transactions"}</p>
           <div className=" mt-1">
-          <H1 className=" w-full text-9xl font-bold">
-            {transactions.today_buy_txn + transactions.today_sell_txn + transactions.today_sell_txn}
-          </H1>
+            <H1 className=" w-full text-9xl font-bold">
+              {transactions.today_buy_txn + transactions.today_sell_txn + transactions.today_sell_txn}
+            </H1>
           </div>
         </div>
         <div className="w-full text-stone-900 flex gap-2 mt-auto mb-6">

@@ -49,7 +49,7 @@ export const BUY_TXN_COLUMNS = [
     title: "User Details",
     dataIndex: "user",
     key: "User Details",
-    render:(item)=>{
+    render: (item) => {
       return (
         <List
           // header={<div>Header</div>}
@@ -64,21 +64,21 @@ export const BUY_TXN_COLUMNS = [
             <>
               <List.Item>
                 <Typography.Text className=" whitespace-nowrap">Name</Typography.Text>
-                <Typography.Text className=" whitespace-nowrap">{item.first_name +" "+ item.last_name}</Typography.Text>
+                <Typography.Text className=" whitespace-nowrap">{item.first_name + " " + item.last_name}</Typography.Text>
               </List.Item>
               <List.Item>
                 <Typography.Text className=" whitespace-nowrap">Phone</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                {item.phone_number}</Typography.Text>
+                  {item.phone_number}</Typography.Text>
               </List.Item>
               <List.Item>
                 <Typography.Text className=" whitespace-nowrap">Kyc Verified</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                {`${item.kyc_verified}`}</Typography.Text>
+                  {`${item.kyc_verified}`}</Typography.Text>
               </List.Item>
-              
+
             </>
           )}
         />
-        
+
       );
     }
   },
@@ -86,10 +86,10 @@ export const BUY_TXN_COLUMNS = [
     title: "UPI/Bank",
     dataIndex: "meta_data",
     key: "UPI",
-    render:(item)=>{
+    render: (item) => {
       // console.log(item)
-      if(!item) return
-      let data = Object.entries(item).map(([key, value]) => ({
+      if (!item) return
+      let data = Object?.entries(item).map(([key, value]) => ({
         key,
         value
       }));
@@ -104,16 +104,16 @@ export const BUY_TXN_COLUMNS = [
           }}
           dataSource={data}
           renderItem={(item) => (
-            item.key === "created_at" || item.key === "updated_at" || item.key === "req_id" || item.key === "id" || item.key === "user_id"  ? null :
-            <List.Item>
-              <Typography.Text className=" whitespace-nowrap">{item.key}</Typography.Text>
-              <Typography.Text className=" whitespace-nowrap">{item.value as string}</Typography.Text>
-            </List.Item>
+            item.key === "created_at" || item.key === "updated_at" || item.key === "req_id" || item.key === "id" || item.key === "user_id" ? null :
+              <List.Item>
+                <Typography.Text className=" whitespace-nowrap">{item.key}</Typography.Text>
+                <Typography.Text className=" whitespace-nowrap">{item.value as string}</Typography.Text>
+              </List.Item>
           )}
         />
-      ); 
+      );
     }
-    
+
   },
   {
     title: "Status",
@@ -191,14 +191,14 @@ export const SELL_TXN_COLUMNS = [
     title: "Date",
     dataIndex: "Date",
     key: "Date",
-    render:(item)=>{
-      try{
-        const date = format(sub(parse(item, "dd/MM/yyyy, HH:mm:ss", new Date()), {hours:5 , minutes:30}) , 'dd/MM/yyyy hh:mm a')
+    render: (item) => {
+      try {
+        const date = format(sub(parse(item, "dd/MM/yyyy, HH:mm:ss", new Date()), { hours: 5, minutes: 30 }), 'dd/MM/yyyy hh:mm a')
         return date
-      }catch(e){
+      } catch (e) {
         return item
       }
-       
+
     },
     sorter: (a, b) => {
       const dateString = a?.Date;
@@ -215,54 +215,54 @@ export const SELL_TXN_COLUMNS = [
     },
   },
   {
-    title:"Beneficiary's UPI ID",
-    dataIndex:"meta_data",
-    key:"Upi",
-    render:(item)=>{
-      return  <Typography.Text className=" whitespace-nowrap ml-2">{item?.vpa}</Typography.Text> 
+    title: "Beneficiary's UPI ID",
+    dataIndex: "meta_data",
+    key: "Upi",
+    render: (item) => {
+      return <Typography.Text className=" whitespace-nowrap ml-2">{item?.vpa}</Typography.Text>
     }
   },
   {
-    title:"Beneficiary Name",
-    dataIndex:"user",
-    key:"Beneficiary Name",
-    render:(item)=>{
-      return  <Typography.Text className="  max-w-xs truncate">{item.first_name !== item.last_name ? item.first_name +" "+ (item.last_name || ""): item.first_name}</Typography.Text> 
+    title: "Beneficiary Name",
+    dataIndex: "user",
+    key: "Beneficiary Name",
+    render: (item) => {
+      return <Typography.Text className="  max-w-xs truncate">{item.first_name !== item.last_name ? item.first_name + " " + (item.last_name || "") : item.first_name}</Typography.Text>
     }
   },
   {
-    title:"State",
-    dataIndex:"user",
-    key:"State",
-    render:(item)=>{
-      return  <Typography.Text className="  max-w-xs truncate">{item.state}</Typography.Text> 
+    title: "State",
+    dataIndex: "user",
+    key: "State",
+    render: (item) => {
+      return <Typography.Text className="  max-w-xs truncate">{item.state}</Typography.Text>
     }
   },
   {
-    title:"Phone Number",
-    dataIndex:"user",
-    key:"Phone Number",
-    render:(item)=>{
-      return  <Typography.Text className="  max-w-xs truncate">{item.phone_number}</Typography.Text> 
+    title: "Phone Number",
+    dataIndex: "user",
+    key: "Phone Number",
+    render: (item) => {
+      return <Typography.Text className="  max-w-xs truncate">{item.phone_number}</Typography.Text>
     }
   },
   {
-    title:"Email ID",
-    dataIndex:"user",
-    key:"Email ID",
-    render:(item)=>{
-      return  <Typography.Text className="  max-w-xs truncate">{item.email}</Typography.Text> 
+    title: "Email ID",
+    dataIndex: "user",
+    key: "Email ID",
+    render: (item) => {
+      return <Typography.Text className="  max-w-xs truncate">{item.email}</Typography.Text>
     }
   },
   {
-    title:"Contact Reference ID",
-    dataIndex:"user",
-    key:"Contact Reference ID",
-    render:(item)=>{
-      return  <Typography.Text className="  max-w-xs truncate">{item.id}</Typography.Text> 
+    title: "Contact Reference ID",
+    dataIndex: "user",
+    key: "Contact Reference ID",
+    render: (item) => {
+      return <Typography.Text className="  max-w-xs truncate">{item.id}</Typography.Text>
     }
   },
- 
+
   // {
   //   title: "User Details",
   //   dataIndex: "user",
@@ -288,11 +288,11 @@ export const SELL_TXN_COLUMNS = [
   //               <Typography.Text className=" whitespace-nowrap">Phone</Typography.Text><Typography.Text className=" whitespace-nowrap">
   //               {item.phone_number}</Typography.Text>
   //             </List.Item>
-              
+
   //           </>
   //         )}
   //       />
-        
+
   //     );
   //   }
   // },
@@ -300,8 +300,8 @@ export const SELL_TXN_COLUMNS = [
     title: "UPI/Bank",
     dataIndex: "meta_data",
     key: "UPI",
-    render:(item)=>{
-      if(!item) return
+    render: (item) => {
+      if (!item) return
       let data = Object.entries(item).map(([key, value]) => ({
         key,
         value
@@ -317,16 +317,16 @@ export const SELL_TXN_COLUMNS = [
           }}
           dataSource={data}
           renderItem={(item) => (
-            item.key === "created_at" || item.key === "updated_at" || item.key === "req_id" || item.key === "id" || item.key === "user_id"  ? null :
-            <List.Item>
-              <Typography.Text className=" whitespace-nowrap">{item.key}</Typography.Text>
-              <Typography.Text className=" whitespace-nowrap ml-2">{item.value as string}</Typography.Text>
-            </List.Item>
+            item.key === "created_at" || item.key === "updated_at" || item.key === "req_id" || item.key === "id" || item.key === "user_id" ? null :
+              <List.Item>
+                <Typography.Text className=" whitespace-nowrap">{item.key}</Typography.Text>
+                <Typography.Text className=" whitespace-nowrap ml-2">{item.value as string}</Typography.Text>
+              </List.Item>
           )}
         />
-      ); 
+      );
     }
-    
+
   },
   {
     title: "Status",
@@ -374,7 +374,7 @@ export const SELL_TXN_COLUMNS = [
   // },
 ];
 
-export const GOLD_REDEMPTION_TXN_COLUMNS:any = [
+export const GOLD_REDEMPTION_TXN_COLUMNS: any = [
   {
     title: "Transaction Id",
     dataIndex: "transaction",
@@ -424,56 +424,56 @@ export const GOLD_REDEMPTION_TXN_COLUMNS:any = [
     key: "transactionGoldMetaData",
     render: (item) => {
       // console.log("ITEMS ",item)
-      let data = Object.entries(item.metadata).map(([key, value]) => ({
+      let data = Object?.entries(item.metadata).map(([key, value]) => ({
         Grams: key,
         quantity: value,
       }));
       return (
         <>
-        <List
-          // header={<div>Header</div>}
-          // footer={<div>Footer</div>}
-          bordered
-          size="large"
-          style={{
-            minWidth: 100,
-          }}
-          dataSource={[{productLabel:item.product_name}]}
-          renderItem={(item) => (
-            <List.Item>
-              <Typography.Text className=" whitespace-nowrap">Product</Typography.Text>
-              <Typography.Text className=" whitespace-nowrap ml-2">{item.productLabel}</Typography.Text>
-              
-            </List.Item>
-          )}
-        />
-        <List
-          // header={<div>Header</div>}
-          // footer={<div>Footer</div>}
-          bordered
-          size="large"
-          style={{
-            minWidth: 100,
-          }}
-          dataSource={data}
-          renderItem={(item) => (
-            <List.Item>
-              <Typography.Text className=" whitespace-nowrap">{item.Grams}gm</Typography.Text>
-              {item.quantity as string}
-            </List.Item>
-          )}
-        />
+          <List
+            // header={<div>Header</div>}
+            // footer={<div>Footer</div>}
+            bordered
+            size="large"
+            style={{
+              minWidth: 100,
+            }}
+            dataSource={[{ productLabel: item.product_name }]}
+            renderItem={(item) => (
+              <List.Item>
+                <Typography.Text className=" whitespace-nowrap">Product</Typography.Text>
+                <Typography.Text className=" whitespace-nowrap ml-2">{item.productLabel}</Typography.Text>
+
+              </List.Item>
+            )}
+          />
+          <List
+            // header={<div>Header</div>}
+            // footer={<div>Footer</div>}
+            bordered
+            size="large"
+            style={{
+              minWidth: 100,
+            }}
+            dataSource={data}
+            renderItem={(item) => (
+              <List.Item>
+                <Typography.Text className=" whitespace-nowrap">{item.Grams}gm</Typography.Text>
+                {item.quantity as string}
+              </List.Item>
+            )}
+          />
         </>
       );
-     
+
     },
   },
   {
     title: "Date",
     dataIndex: "transaction",
     key: "Date",
-    render:(item)=>{
-      return format( sub( new Date(item.created_at), {hours:5 , minutes:30}) , 'dd/MM/yyyy hh:mm a') 
+    render: (item) => {
+      return format(sub(new Date(item.created_at), { hours: 5, minutes: 30 }), 'dd/MM/yyyy hh:mm a')
     },
     sorter: (a, b) => {
       const dateString = a?.Date;
@@ -514,23 +514,23 @@ export const GOLD_REDEMPTION_TXN_COLUMNS:any = [
               </List.Item>
               <List.Item>
                 <Typography.Text className=" whitespace-nowrap">Phone</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                {item.phone_number}</Typography.Text>
+                  {item.phone_number}</Typography.Text>
               </List.Item>
               <List.Item>
                 <Typography.Text className=" whitespace-nowrap">Pincode</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                {item.pincode}</Typography.Text>
+                  {item.pincode}</Typography.Text>
               </List.Item>
               <List.Item>
                 <Typography.Text className=" whitespace-nowrap">State</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                {item.state}</Typography.Text>
+                  {item.state}</Typography.Text>
               </List.Item>
               <List.Item>
                 <Typography.Text className=" whitespace-nowrap">City</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                {item.city}</Typography.Text>
+                  {item.city}</Typography.Text>
               </List.Item>
               <List.Item className=" gap-x-3">
-                <Typography.Text style={{minWidth:"fit-content"}}>Address</Typography.Text><Typography.Text className=" text-right">
-                {item.street_address +" "+ item.street_address2}</Typography.Text>
+                <Typography.Text style={{ minWidth: "fit-content" }}>Address</Typography.Text><Typography.Text className=" text-right">
+                  {item.street_address + " " + item.street_address2}</Typography.Text>
               </List.Item>
             </>
           )}
@@ -609,7 +609,7 @@ export const GOLD_REDEMPTION_TXN_COLUMNS:any = [
     //   return record.Status?.props?.children[0]?.props?.children === value;
     // },
   },
- 
+
   // {
   //   title: "Invoice",
   //   dataIndex: "Invoice",
@@ -633,7 +633,7 @@ export const MANDATE_INFO = [
     title: "Mandate Id",
     dataIndex: "mandate_id",
     key: "Mandate Id",
-    
+
   },
   {
     title: "Mandate Status",
@@ -646,90 +646,90 @@ export const MANDATE_INFO = [
     key: "Amount",
   },
   {
-    title:"Notification Id",
-    dataIndex:"notification_id",
-    key:"Notification Id",
-    render:(item)=> <Link href={`/mandate/${item}`}>{item}</Link>
+    title: "Notification Id",
+    dataIndex: "notification_id",
+    key: "Notification Id",
+    render: (item) => <Link href={`/mandate/${item}`}>{item}</Link>
   },
   {
-    title:"Start Date",
-    dataIndex:"start_date",
-    key:"Start Date"
+    title: "Start Date",
+    dataIndex: "start_date",
+    key: "Start Date"
   },
   {
-    title:"Notification Status",
-    dataIndex:"notification_status",
-    key:"Notification Status"
+    title: "Notification Status",
+    dataIndex: "notification_status",
+    key: "Notification Status"
   },
   {
-    title:"Mandate Meta Data",
-    dataIndex:"mandate_meta_data",
-    key:"Mandate Meta Data",
-    render:(item)=>{
-      const callback_data = item.mandate_callback ? Object.entries(item.mandate_callback) : null
+    title: "Mandate Meta Data",
+    dataIndex: "mandate_meta_data",
+    key: "Mandate Meta Data",
+    render: (item) => {
+      const callback_data = item.mandate_callback ? Object?.entries(item.mandate_callback) : null
       return (
         <>
-        <List
-          header={<h3 className=" font-semibold">Callback Data</h3>}
-          // footer={<div>Footer</div>}
-          bordered
-          size="small"
-          style={{
-            // minWidth: 100,
-          }}
-          dataSource={callback_data}
-          renderItem={([label,value]:any) => (
-            <>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">{label}</Typography.Text>
-                <Typography.Text className=" whitespace-nowrap">{value}</Typography.Text>
-              </List.Item>
-          
-              
-            </>
-          )}
-        />
+          <List
+            header={<h3 className=" font-semibold">Callback Data</h3>}
+            // footer={<div>Footer</div>}
+            bordered
+            size="small"
+            style={{
+              // minWidth: 100,
+            }}
+            dataSource={callback_data}
+            renderItem={([label, value]: any) => (
+              <>
+                <List.Item>
+                  <Typography.Text className=" whitespace-nowrap">{label}</Typography.Text>
+                  <Typography.Text className=" whitespace-nowrap">{value}</Typography.Text>
+                </List.Item>
+
+
+              </>
+            )}
+          />
         </>
-        
+
       );
     }
-    
+
   },
   {
-    title:"Notification Meta Data",
-    dataIndex:"notification_meta_data",
-    key:"Notification Meta Data",
-    render:(item)=>{
-      const callback_data = item ? Object.entries(item) : null
+    title: "Notification Meta Data",
+    dataIndex: "notification_meta_data",
+    key: "Notification Meta Data",
+    render: (item) => {
+      const callback_data = item ? Object?.entries(item) : null
       return (
         <>
-        <List
-          // header={<h3 className=" font-semibold">Callback Data</h3>}
-          // footer={<div>Footer</div>}
-          bordered
-          size="small"
-          style={{
-            // minWidth: 100,
-          }}
-          dataSource={callback_data}
-          renderItem={([label,value]:any) => (
-            <>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">{label}</Typography.Text>
-                <Typography.Text className=" whitespace-nowrap">{value}</Typography.Text>
-              </List.Item>
-          
-              
-            </>
-          )}
-        />
+          <List
+            // header={<h3 className=" font-semibold">Callback Data</h3>}
+            // footer={<div>Footer</div>}
+            bordered
+            size="small"
+            style={{
+              // minWidth: 100,
+            }}
+            dataSource={callback_data}
+            renderItem={([label, value]: any) => (
+              <>
+                <List.Item>
+                  <Typography.Text className=" whitespace-nowrap">{label}</Typography.Text>
+                  <Typography.Text className=" whitespace-nowrap">{value}</Typography.Text>
+                </List.Item>
+
+
+              </>
+            )}
+          />
         </>
-        
+
       );
     }
-    
+
   }
-  
+
 ]
 
 export const MANDATE_TXN_INFO = [
@@ -749,37 +749,37 @@ export const MANDATE_TXN_INFO = [
     key: "Transaction Number",
   },
   {
-    title:"Transaction Meta Data",
-    dataIndex:"transaction_meta_data",
-    key:"Transaction Meta Data",
-    render:(item)=>{
-      const callback_data = item ? Object.entries(item) : null
+    title: "Transaction Meta Data",
+    dataIndex: "transaction_meta_data",
+    key: "Transaction Meta Data",
+    render: (item) => {
+      const callback_data = item ? Object?.entries(item) : null
       return (
         <>
-        <List
-          header={<h3 className=" font-semibold">Callback Data</h3>}
-          // footer={<div>Footer</div>}
-          bordered
-          size="small"
-          style={{
-            // minWidth: 100,
-          }}
-          dataSource={callback_data}
-          renderItem={([label,value]:any) => (
-            <>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">{label}</Typography.Text>
-                <Typography.Text className=" whitespace-nowrap">{value}</Typography.Text>
-              </List.Item>
-          
-              
-            </>
-          )}
-        />
+          <List
+            header={<h3 className=" font-semibold">Callback Data</h3>}
+            // footer={<div>Footer</div>}
+            bordered
+            size="small"
+            style={{
+              // minWidth: 100,
+            }}
+            dataSource={callback_data}
+            renderItem={([label, value]: any) => (
+              <>
+                <List.Item>
+                  <Typography.Text className=" whitespace-nowrap">{label}</Typography.Text>
+                  <Typography.Text className=" whitespace-nowrap">{value}</Typography.Text>
+                </List.Item>
+
+
+              </>
+            )}
+          />
         </>
-        
+
       );
     }
-    
+
   },
 ]

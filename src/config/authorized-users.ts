@@ -5,61 +5,166 @@ export interface AuthorizedUser {
   phoneNumber: string;
   name: string;
   role: "admin" | "manager" | "operator";
-  permissions: string[];
+  permissions: number[];
   lastAccess?: string;
 }
 
+
+
+type NavOption = {
+  type: string;
+  permission?: number;
+};
+
+type NavLink = {
+  type: string;
+  permission?: number;
+  options?: NavOption;
+};
 // List of authorized phone numbers with additional metadata
 export const AUTHORIZED_USERS: AuthorizedUser[] = [
+  {
+    phoneNumber: "8624800390",
+    name: "Sujit Memane",
+    role: "admin",
+    permissions: [1, 3, 20, 21, 23],
+  },
   {
     phoneNumber: "7507139592",
     name: "Admin User",
     role: "admin",
-    permissions: ["all"],
+    permissions: [1, 3, 20, 21, 23],
   },
   {
     phoneNumber: "9450628820",
     name: "Admin User",
     role: "admin",
-    permissions: ["all"],
+    permissions: [1, 3, 20, 21, 23],
   },
   {
     phoneNumber: "7010935074",
     name: "Admin User",
     role: "admin",
-    permissions: ["all"],
+    permissions: [1, 3, 20, 21, 23],
   },
   {
     phoneNumber: "7401592702",
     name: "Admin User",
     role: "admin",
-    permissions: ["all"],
+    permissions: [1, 3, 20, 21, 23],
   },
   {
     phoneNumber: "8144127115",
     name: "Admin User",
     role: "admin",
-    permissions: ["partial"],
+    permissions: [1, 3],
   },
   {
     phoneNumber: "8248399262",
     name: "Admin User",
     role: "admin",
-    permissions: ["partial"],
+    permissions: [1, 3],
   },
   {
     phoneNumber: "9841432183",
     name: "Admin User",
     role: "admin",
-    permissions: ["all"],
+    permissions: [1, 3, 20, 21, 23],
   },
-  // Add more authorized users here
+  {
+    phoneNumber: "0000123456",
+    name: "Admin User",
+    role: "admin",
+    permissions: [1, 2, 3, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 50, 51, 60, 61, 62],
+  },
+  {
+    phoneNumber: "0000000005",
+    name: "Admin User",
+    role: "admin",
+    permissions: [1, 2, 3, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 50, 51, 60, 61],
+  },
+  {
+    phoneNumber: "0000000009",
+    name: "Admin User",
+    role: "admin",
+    permissions: [1, 2, 3, 10, 11, 12, 13, 20, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 50, 51, 60, 61],
+  },
+  {
+    phoneNumber: "9025807876",
+    name: "Admin User",
+    role: "admin",
+    permissions: [1, 2, 3, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 50, 51, 60, 61, 62],
+  },
 ];
 
 // Get all authorized phone numbers
 export const getAuthorizedPhoneNumbers = (): string[] => {
   return AUTHORIZED_USERS.map((user) => user.phoneNumber);
 };
+
+
+
+export const getUserAuthorizedPages = (phoneNumber: string): number[] => {
+  const user = getUserByPhoneNumber(phoneNumber);
+  if (!user) return [];
+  return user?.permissions
+};
+
+
+
+export const getAuthorizedNavLinks = (
+  navLinks: NavLink[],
+  userPermissions: number[]
+): NavLink[] => {
+
+  return navLinks
+    .map((menu) => {
+
+      if (menu.type === "link") {
+
+
+        const isAllowed = userPermissions.includes(menu.permission)
+
+
+
+        return isAllowed ? menu : null;
+      }
+
+      if (menu.type === "dropdown" && menu.options) {
+        const allowedOptions = menu.options?.filter(option => {
+          const allowed =
+            !option.permission ||
+
+            userPermissions.includes(option?.permission)
+
+          return allowed;
+        });
+
+        if (allowedOptions.length === 0) {
+          return null;
+        }
+
+
+
+        return {
+          ...menu,
+          options: allowedOptions,
+        };
+      }
+
+
+      return null;
+    })
+    .filter((menu): menu is NavLink => Boolean(menu));
+};
+
+
+
+export const isPageAuthorized = (phoneNumber: string, permission: number): boolean => {
+  const user = getUserByPhoneNumber(phoneNumber);
+  if (!user) return false;
+  return user.permissions.includes(permission);
+}
 
 // Check if a phone number is authorized
 export const isPhoneNumberAuthorized = (phoneNumber: string): boolean => {

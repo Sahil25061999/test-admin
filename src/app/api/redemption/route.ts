@@ -30,7 +30,7 @@ const encryptToken = (plainText: string, key: string) => {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions) as CustomSession | null;
-    
+
     if (!session?.accessToken) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       "N#8v!zXq3eP$wLr7@U2jT%9kBm5Qf4Y1",
       "6f8f57715090da2632453988d9a1501b6d4f7dffed6a532f1e3a7865e837a69a"
     );
-    
+
     if (encryptedAccessToken) {
       chrysusApi.defaults.headers["X-Auth-Token"] = JSON.stringify(encryptedAccessToken);
     }
@@ -92,11 +92,11 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Redemption API error:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: error.response?.data?.message || "Failed to process redemption" 
+      {
+        success: false,
+        message: error.response?.data?.message || "Failed to process redemption"
       },
       { status: error.response?.status || 500 }
     );
   }
-} 
+}

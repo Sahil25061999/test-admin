@@ -1,144 +1,110 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { 
-  isPhoneNumberAuthorized, 
-  getUserByPhoneNumber, 
+import {
+  isPhoneNumberAuthorized,
   updateLastAccess,
-  hasPermission,
-  AUTHORIZED_USERS
+  AUTHORIZED_USERS,
 } from "./config/authorized-users";
+import { FREE_NAVLINKS } from "./constants/navbar";
 
-// Define which routes belong to which layout
 const PROTECTED_ROUTES = [
-  '/dashboard',
-  '/users',
-  '/mandate',
-  '/update',
-  '/settings',
-  '/gold',
-  '/silver',
-  '/block',
-  '/admin-only'
-];
-
-const LIMITED_ACCESS_ROUTES = [
-  '/gold-redemption',
-  '/silver-redemption'
+  "/dashboard",
+  "/users",
+  "/mandate",
+  "/update",
+  "/settings",
+  "/gold",
+  "/silver",
+  "/block",
+  "/admin-only",
 ];
 
 export async function middleware(request: NextRequest) {
+  console.log("API________HITTTTTT")
   const { pathname } = request.nextUrl;
-  // Check if the request is for API routes
+
+  /* ================= API ROUTES ================= */
   if (pathname.startsWith("/api/")) {
-    // Skip phone number check for auth endpoints
     if (pathname.startsWith("/api/auth/")) {
       return NextResponse.next();
     }
 
-    try {
-      // Get the session token
-      const token = await getToken({ 
-        req: request,
-        secret: process.env.NEXTAUTH_SECRET 
-      });
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
-      if (!token) {
-        return NextResponse.json(
-          { success: false, message: "Something went wrong" },
-          { status: 401 }
-        );
-      }
-
-      // Extract phone number from token
-      const phoneNumber = token.phone as string;
-      
-      if (!phoneNumber) {
-        return NextResponse.json(
-          { success: false, message: "Something went wrong" },
-          { status: 401 }
-        );
-      }
-
-      // Check if phone number is authorized
-      if (!isPhoneNumberAuthorized(phoneNumber)) {
-        return NextResponse.json(
-          { 
-            success: false, 
-            message: "Something went wrong" 
-          },
-          { status: 403 }
-        );
-      }
-
-      // Update last access time
-      updateLastAccess(phoneNumber);
-
-      return NextResponse.next();
-    } catch (error) {
-      console.error("Middleware error:", error);
+    if (!token?.phone) {
       return NextResponse.json(
-        { success: false, message: "Internal server error" },
-        { status: 500 }
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
       );
     }
+
+    if (!isPhoneNumberAuthorized(token.phone as string)) {
+      return NextResponse.json(
+        { success: false, message: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    updateLastAccess(token.phone as string);
+    return NextResponse.next();
   }
 
-  // Handle page-level authorization routing
-  const isLimitedAccessRoute = LIMITED_ACCESS_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'));
-  const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/')) && !isLimitedAccessRoute;
-  
-  if (isProtectedRoute || isLimitedAccessRoute) {
-    
-    try {
-      // Get the session token
-      const token = await getToken({ 
-        req: request,
-        secret: process.env.NEXTAUTH_SECRET 
-      });
+  /* ================= PAGE ROUTES ================= */
+  const isProtectedRoute = PROTECTED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  );
 
-      if (!token?.phone) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
+  if (!isProtectedRoute) {
+    return NextResponse.next();
+  }
 
-      const phoneNumber = token.phone as string;
-      
-      if (!isPhoneNumberAuthorized(phoneNumber)) {
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
+  try {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
 
-      // Check user permissions
-      const user = AUTHORIZED_USERS.find(user => user.phoneNumber === phoneNumber);
-      const hasFullPermissions = user?.permissions.includes("all") || false;
-      
-
-      // If user is trying to access protected routes but doesn't have full permissions
-      if (isProtectedRoute && !hasFullPermissions) {
-        return NextResponse.redirect(new URL("/gold-redemption", request.url));
-      }
-
-      // Update last access time
-      updateLastAccess(phoneNumber);
-
-      return NextResponse.next();
-    } catch (error) {
-      console.error("Middleware page routing error:", error);
+    if (!token?.phone) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-  }
 
-  // For other routes, continue with normal flow
-  return NextResponse.next();
+    const phoneNumber = token.phone as string;
+
+    if (!isPhoneNumberAuthorized(phoneNumber)) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+    const user = AUTHORIZED_USERS.find(
+      (u) => u.phoneNumber === phoneNumber
+    );
+
+    if (!user) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+
+
+
+
+    const menu = FREE_NAVLINKS.find(n => n.href === pathname);
+
+
+    if (menu?.permission && !user?.permissions.includes(menu.permission)) {
+      return NextResponse.redirect(new URL("/unauthorised", request.url));
+    }
+
+    return NextResponse.next();
+
+  } catch (err) {
+    console.error("Middleware error:", err);
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     "/((?!_next/static|_next/image|favicon.ico|public).*)",
   ],
-}; 
+};

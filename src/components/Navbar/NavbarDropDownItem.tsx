@@ -1,48 +1,58 @@
 "use client";
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { NavItem } from "./NavItem";
 
-export function NavDropDownItem({ item, pathname }) {
-  const [display, setDisplay] = useState(false);
-
-  const handleDropdown = () => setDisplay((prev) => !prev);
+export function NavDropDownItem({ item }: any) {
+  const [open, setOpen] = useState(false);
 
   return (
     <li>
+      {/* ===== Parent ===== */}
       <button
-        onClick={handleDropdown}
+        onClick={() => setOpen((p) => !p)}
         type="button"
-        className="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-        aria-controls="dropdown-example"
-        data-collapse-toggle="dropdown-example"
+        className={`
+          group relative flex w-full items-center justify-between gap-3
+          px-3 py-2.5 rounded-xl text-sm
+          transition-all duration-200
+          text-gray-600 hover:bg-gray-50 hover:text-gray-900
+        `}
+        aria-expanded={open}
       >
-        <item.icon className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" />
+        <div className="flex items-center gap-3">
+          {item.icon && (
+            <item.icon
+              className="h-5 w-5 text-gray-400 group-hover:text-gray-600 transition-colors"
+            />
+          )}
+          <span className="font-medium">{item.route}</span>
+        </div>
 
-        <span className="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">{item.route}</span>
-        <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-          <path
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="m1 1 4 4 4-4"
-          />
-        </svg>
+        <ChevronDown
+          className={`
+            h-4 w-4 text-gray-400 transition-transform duration-200
+            ${open ? "rotate-180" : ""}
+          `}
+        />
       </button>
-      <ul id="dropdown-example" className={`${display ? "" : "hidden"} py-2 space-y-2`}>
-        {item.options.map((item) => (
-          <div key={item.route} className="pl-11">
-            <NavItem item={item} />
+
+      {/* ===== Children ===== */}
+      <ul
+        className={`
+          mt-1 space-y-1 overflow-hidden
+          transition-all duration-300 ease-out
+          ${open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}
+        `}
+      >
+        {item.options.map((option: any) => (
+          <div
+            key={option.route}
+            className="relative ml-4 pl-4 border-l border-gray-200"
+          >
+            <NavItem item={option} />
           </div>
         ))}
-        {/* <li>
-          <a
-            href="#"
-            className="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-          >
-            Products
-          </a>
-        </li> */}
       </ul>
     </li>
   );
