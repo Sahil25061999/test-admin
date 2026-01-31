@@ -75,7 +75,7 @@ export const AUTHORIZED_USERS: AuthorizedUser[] = [
     phoneNumber: "0000123456",
     name: "Admin User",
     role: "admin",
-    permissions: [1, 2, 3, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 50, 51, 60, 61, 62],
+    permissions: [1, 2, 3, 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 40, 41, 42, 43, 50, 51, 60, 61, 62],
   },
   {
     phoneNumber: "0000000005",

@@ -64,6 +64,7 @@ export const NAVLINKS = [
     type: "link",
   },
 
+  ,
   {
     route: "Transactions",
     icon: Receipt,
