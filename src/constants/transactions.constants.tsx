@@ -1,4 +1,4 @@
-import { List, Table, Typography } from "antd";
+import { List, Table, Tooltip, Typography } from "antd";
 import { sub, compareAsc, format, parse } from "date-fns";
 import Link from "next/link";
 
@@ -374,208 +374,135 @@ export const SELL_TXN_COLUMNS = [
   // },
 ];
 
+
 export const GOLD_REDEMPTION_TXN_COLUMNS: any = [
   {
-    title: "Transaction Id",
+    title: "Txn ID",
     dataIndex: "transaction",
     key: "transactionId",
     fixed: "left",
-    render: (item) => {
-      // console.log(item)
-      return item["txn_id"];
-    },
+    width: 150,
+    render: (txn) => (
+      <Typography.Text className="flex items-center gap-2" copyable>
+        {txn?.txn_id ?? "-"}
+      </Typography.Text>
+    ),
   },
+
   {
-    title: "Gold Quantity Purchased",
+    title: "Metal (gm)",
     dataIndex: "transaction",
-    fixed: "left",
-    key: "transactionGoldQuantityPurchased",
-    render: (item) => {
-      return item["quantity_purchased"];
-    },
+    key: "goldQty",
+    width: 120,
+    render: (txn) => (
+      <span className="font-medium">
+        {txn?.gold_quantity_purchased ?? 0} gm
+      </span>
+    ),
   },
+
   {
-    title: "Gold Redeemed From Vault",
+    title: "Vault Used",
     dataIndex: "transaction",
-    key: "transactionGoldRedeemedFromVault",
-    render: (item) => item["redeemed_from_vault"],
+    key: "vaultQty",
+    width: 120,
+    render: (txn) => txn?.gold_redeemed_from_vault ?? 0,
   },
-  // {
-  //   title: "Base price",
-  //   dataIndex: "transaction",
-  //   key: "transactionRates",
-  //   render: (item) => item["base_price"],
-  // },
+
   {
-    title: "Making/Delivery Price",
+    title: "Making ₹",
     dataIndex: "transaction",
-    key: "transactionMakingPrice",
-    render: (item) => item["making_price"],
+    key: "makingPrice",
+    width: 120,
+    render: (txn) => (
+      <span className="text-gray-700">
+        ₹{txn?.making_price?.toLocaleString() ?? 0}
+      </span>
+    ),
   },
+
   {
-    title: "Total Price",
+    title: "Total ₹",
     dataIndex: "transaction",
-    key: "transactionGoldRedeemedFromVault",
-    render: (item) => item["total_price"],
+    key: "totalPrice",
+    width: 130,
+    render: (txn) => (
+      <span className="font-semibold text-black">
+        ₹{txn?.total_price?.toLocaleString() ?? 0}
+      </span>
+    ),
   },
+
   {
-    title: "Gold meta data",
+    title: " Details",
     dataIndex: "transaction",
-    key: "transactionGoldMetaData",
-    render: (item) => {
-      // console.log("ITEMS ",item)
-      let data = Object?.entries(item.metadata).map(([key, value]) => ({
-        Grams: key,
-        quantity: value,
-      }));
+    key: "goldMeta",
+    width: 220,
+    render: (txn) => {
+      const meta = txn?.gold_metadata ?? {};
+
       return (
-        <>
-          <List
-            // header={<div>Header</div>}
-            // footer={<div>Footer</div>}
-            bordered
-            size="large"
-            style={{
-              minWidth: 100,
-            }}
-            dataSource={[{ productLabel: item.product_name }]}
-            renderItem={(item) => (
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">Product</Typography.Text>
-                <Typography.Text className=" whitespace-nowrap ml-2">{item.productLabel}</Typography.Text>
+        <div className="space-y-1">
+          <div className="font-medium text-sm">
+            {txn?.product_name}
+          </div>
 
-              </List.Item>
-            )}
-          />
-          <List
-            // header={<div>Header</div>}
-            // footer={<div>Footer</div>}
-            bordered
-            size="large"
-            style={{
-              minWidth: 100,
-            }}
-            dataSource={data}
-            renderItem={(item) => (
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">{item.Grams}gm</Typography.Text>
-                {item.quantity as string}
-              </List.Item>
-            )}
-          />
-        </>
+          <div className="flex flex-wrap gap-1">
+            {Object.entries(meta).map(([g, q]) => (
+              <span
+                key={g}
+                className="px-2 py-[2px] text-xs rounded bg-gray-100"
+              >
+                {g}gm × {q}
+              </span>
+            ))}
+          </div>
+        </div>
       );
-
     },
   },
+
   {
     title: "Date",
     dataIndex: "transaction",
-    key: "Date",
-    render: (item) => {
-      return format(sub(new Date(item.created_at), { hours: 5, minutes: 30 }), 'dd/MM/yyyy hh:mm a')
-    },
-    sorter: (a, b) => {
-      const dateString = a?.Date;
-      const dateString2 = b?.Date;
-      const parsedDate = parse(dateString, "dd/MM/yyyy, HH:mm:ss", new Date());
-      const parsedDate2 = parse(
-        dateString2,
-        "dd/MM/yyyy, HH:mm:ss",
-        new Date()
-      );
-      // const formattedDate = format(parsedDate, "dd MMMM yyyy, HH:mm:ss");
-      return compareAsc(parsedDate, parsedDate2);
-      // parsedDate.toISOString().localeCompare(parsedDate2.toISOString());
-    },
+    key: "date",
+    width: 170,
+    render: (txn) =>
+      txn?.created_at
+        ? format(
+          sub(new Date(txn.created_at), { hours: 5, minutes: 30 }),
+          "dd MMM yyyy, hh:mm a"
+        )
+        : "-",
   },
+
   {
-    title: "User Details",
+    title: "User",
     dataIndex: "address",
-    key: "addressUser",
-    render: (item) => {
-      // console.log(item);
+    key: "user",
+    width: 220,
+    render: (addr) => {
+      if (!addr) return "-";
 
       return (
-        <List
-          // header={<div>Header</div>}
-          // footer={<div>Footer</div>}
-          bordered
-          size="small"
-          style={{
-            // minWidth: 100,
-          }}
-          dataSource={[item]}
-          renderItem={(item) => (
-            <>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">Name</Typography.Text>
-                <Typography.Text className=" whitespace-nowrap">{item.name}</Typography.Text>
-              </List.Item>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">Phone</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                  {item.phone_number}</Typography.Text>
-              </List.Item>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">Pincode</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                  {item.pincode}</Typography.Text>
-              </List.Item>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">State</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                  {item.state}</Typography.Text>
-              </List.Item>
-              <List.Item>
-                <Typography.Text className=" whitespace-nowrap">City</Typography.Text><Typography.Text className=" whitespace-nowrap">
-                  {item.city}</Typography.Text>
-              </List.Item>
-              <List.Item className=" gap-x-3">
-                <Typography.Text style={{ minWidth: "fit-content" }}>Address</Typography.Text><Typography.Text className=" text-right">
-                  {item.street_address + " " + item.street_address2}</Typography.Text>
-              </List.Item>
-            </>
-          )}
-        />
-        // <Table
-        //   columns={[
-        //     {
-        //       title: "Name",
-        //       dataIndex: "name",
-        //       key: "name",
-        //     },
-        //     {
-        //       title: "Phone",
-        //       dataIndex: "phone_number",
-        //       key: "phone",
-        //     },
-        //     {
-        //       title: "Pincode",
-        //       dataIndex: "pincode",
-        //       key: "pincode",
-        //     },
-        //     {
-        //       title: "State",
-        //       dataIndex: "state",
-        //       key: "state",
-        //     },
-        //     {
-        //       title: "City",
-        //       dataIndex: "city",
-        //       key: "city",
-        //     },
-        //     {
-        //       title: "Address line 1",
-        //       dataIndex: "street_address",
-        //       key: "street_address",
-        //     },
-        //     {
-        //       title: "Address line 2",
-        //       dataIndex: "street_address2",
-        //       key: "street_address2",
-        //     },
-        //   ]}
-        //   dataSource={[item]}
-        //   pagination={false}
-        // />
+        <Tooltip
+          title={
+            <div className="text-sm">
+              <div>{addr.street_address}</div>
+              <div>{addr.street_address2}</div>
+              <div>
+                {addr.city}, {addr.state} - {addr.pincode}
+              </div>
+            </div>
+          }
+        >
+          <div className="space-y-[2px] cursor-pointer">
+            <div className="font-medium">{addr.name}</div>
+            <div className="text-xs text-gray-500">
+              {addr.phone_number} • {addr.city}
+            </div>
+          </div>
+        </Tooltip>
       );
     },
   },
@@ -583,38 +510,14 @@ export const GOLD_REDEMPTION_TXN_COLUMNS: any = [
   {
     title: "Status",
     dataIndex: "transaction",
-    key: "transactionStatus",
-    render: (item) => item["txn_status"],
-    // width: "200px",
-    // filters: [
-    //   {
-    //     text: "Successful",
-    //     value: "SUCCESSFUL",
-    //   },
-    //   {
-    //     text: "Failed",
-    //     value: "FAILED",
-    //   },
-    //   {
-    //     text: "Completed",
-    //     value: "COMPLETED",
-    //   },
-    // ],
-    // onFilter: (value, record) => {
-    //   // console.log("VALUE==>", value);
-    //   if (value.includes("COMPLETED") || value.includes("FAILED")) {
-    //     return record.Status === value;
-    //   }
-
-    //   return record.Status?.props?.children[0]?.props?.children === value;
-    // },
+    key: "status",
+    width: 160,
+    render: (txn) => (
+      <div className="inline-flex items-center px-2 py-1 border rounded">
+        {txn?._txnStatusNode ?? txn?.txn_status ?? "-"}
+      </div>
+    ),
   },
-
-  // {
-  //   title: "Invoice",
-  //   dataIndex: "Invoice",
-  //   key: "Invoice",
-  // },
 ];
 
 

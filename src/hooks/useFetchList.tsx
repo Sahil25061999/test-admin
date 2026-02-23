@@ -1,22 +1,9 @@
 "use client";
+
 import { useCallback, useEffect, useState } from "react";
 import { Typography } from "antd";
 import { useToast } from "../context/toast.context";
 import { useAuth } from "../context/auth";
-
-const fetchUpi = async (phone: string) => {
-  try {
-    const res = await fetch(`/api/upis?phone=${phone}`);
-    const data = await res.json();
-    if (data?.success) {
-      return data.data.join(",");
-    }
-
-    return [];
-  } catch (e) {
-    return [];
-  }
-};
 
 export const useFetchList = ({ url, columns }) => {
   const [totalPages, setTotalPages] = useState(0);
@@ -24,20 +11,25 @@ export const useFetchList = ({ url, columns }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false)
+
   const [currentTransaction, setCurrentTransaction] = useState<
     | undefined
     | {
-        txnid: string;
-        statusToSet: string;
-        transaction?: any;
-        external_txn_id?: any;
-      }
+      txnid: string;
+      statusToSet: string;
+      transaction?: any;
+      external_txn_id?: any;
+    }
   >();
+
   const [date, setDate] = useState({
     startDate: "",
     endDate: "",
   });
+
   const [status, setStatus] = useState([]);
+
   const [search, setSearch] = useState({
     name: "",
     phone: "",
@@ -45,172 +37,163 @@ export const useFetchList = ({ url, columns }) => {
     txn_type: "",
     product_name: "",
   });
+
   const { toast } = useToast();
-  const {token} = useAuth()
-  
+  const { token } = useAuth();
+
   const handleSelect = (value, transaction) => {
-    setIsOpen(() => true);
-    setCurrentTransaction(() => ({ ...transaction, statusToSet: value }));
+    setIsOpen(true);
+    setCurrentTransaction({ ...transaction, statusToSet: value });
   };
-  
 
   const fetchList = useCallback(async () => {
-   
     try {
-      let query = new URLSearchParams({
+      const query = new URLSearchParams({
         txn_type: "BUY",
         offset: ((currentPage - 1) * limit).toString(),
         limit: limit.toString(),
-        startdate: date.startDate,
-        enddate: date.endDate,
-        // product_name: search.product_name,
-      }) as unknown;
-      query = query.toString();
-      // console.log(search.product_name,query)
-      const res = await fetch(`/api/transactions?url=${encodeURIComponent(url)}&${query}`);
-      const data = await res.json();
-      if (data?.success) {
-        if (data.data.total_pages) {
-          setTotalPages(() => data.data.total_pages);
-        }
+        startdate: date.startDate || "",
+        enddate: date.endDate || "",
 
-        if (url.includes("redemption")) {
-          // console.log(data.data.transactions);
-          setData(() =>
-            data.data.transactions.map((item,index) => {
-              console.log( item?.address?.name, item?.transaction?.txn_status);
-              let transaction_status = item["transaction"]["txn_status"];
-              item["transaction"]["txn_status"] =
-                ['PROCESSING','AWAITING PICKUP','SHIPPED','IN-TRANSIT','OUT FOR DELIVERY','ORDER SUCCESSFUL'].includes(transaction_status) ? (
-                  <select
-                    className=" bg-transparent"
-                    value={transaction_status}
-                    onChange={(e) => handleSelect(e.target.value, item)}
-                  >
-                    <option className="bg-transparent text-black" value={transaction_status} selected disabled hidden>
-                      {transaction_status}
-                    </option>
-                    <option className=" bg-white" value="SUCCESS">
-                      SUCCESS
-                    </option>
-                    <option className=" bg-white" value="ORDER SUCCESSFUL">
-                      Order Successful
-                    </option>
-                    <option className=" bg-white" value="AWAITING PICKUP">
-                      Awaiting Pickup
-                    </option>
-                    <option className=" bg-white" value="SHIPPED">
-                      Shipped
-                    </option>
-                    <option className=" bg-white" value="IN-TRANSIT">
-                      In-Transit
-                    </option>
-                    <option className=" bg-white" value="OUT FOR DELIVERY">
-                      Out for Delivery
-                    </option>
-                    <option className=" bg-white" value="DELIVERED">
-                      Delivered
-                    </option>
-                    <option className=" bg-white" value="FLAGGED">
-                      FLAGGED
-                    </option>
+      }).toString();
+      const apiUrl = `/api/transactions?url=${encodeURIComponent(url)}&${query}`;
+      console.log("API URL", apiUrl);
+      setLoading(true)
+      const res = await fetch(apiUrl);
 
-                    {/* {item.transaction.redeemed_from_vault === 0 ?null:
-                    <option className=" bg-white" value="CANCELLED">
-                      CANCELLED
-                    </option>
-                    } */}
-                  </select>
-                ) : (
-                  transaction_status
-                );
-              return {...item,key:item.transaction.txn_id};
-            })
-          );
-        } else {
-          setData(() => {
-            return data.data.transactions.map((item) => {
-              console.log(item);
-              const row = {
-                key: item?.external_txn_id,
-                "Transaction Id": item?.external_txn_id,
-                Quantity: item?.qty_g,
-                Amount: item?.total_value_rs,
-                Date: new Date(item.created_at).toLocaleString(),
-                user: item?.user,
-                meta_data: item?.meta_data,
-              };
-              row["Status"] =
-                item.txn_status === "PROCESSING" ? (
-                  <select
-                    className=" bg-transparent"
-                    value={item.txn_status}
-                    onChange={(e) => handleSelect(e.target.value, item)}
-                  >
-                    <option className="bg-transparent text-black" value={item.txn_status} selected disabled hidden>
-                      {item.txn_status}
-                    </option>
-                    <option className=" bg-white" value="SUCCESS">
-                      SUCCESS
-                    </option>
-                    <option className=" bg-white" value="FLAGGED">
-                      FLAGGED
-                    </option>
-                    {/* <option className=" bg-white" value="CANCELLED">
-                      CANCELLED
-                    </option> */}
-                  </select>
-                ) : (
-                  item.txn_status
-                );
-              row["Notes"] = <Typography.Text>{item.notes}</Typography.Text>;
-              row["Rates"] = (query as string).includes("BUY") ? item?.rate_per_g_wo_gst : item?.aura_sell_price;
-              return row;
-            });
-          });
-        }
+
+      const result = await res.json();
+
+      if (!result?.success) return;
+
+      setTotalPages(result.data.total_pages || 0);
+
+
+      if (url.includes("redemption")) {
+        const rows = result.data.transactions.map((item) => {
+          const txnStatus = item.transaction.txn_status;
+
+          const statusNode =
+            [
+              "PROCESSING",
+              "AWAITING PICKUP",
+              "SHIPPED",
+              "IN-TRANSIT",
+              "OUT FOR DELIVERY",
+              "ORDER SUCCESSFUL",
+            ].includes(txnStatus) ? (
+              <select
+                className="bg-transparent"
+                value={txnStatus}
+                onChange={(e) => handleSelect(e.target.value, item)}
+              >
+                <option disabled hidden value={txnStatus}>
+                  {txnStatus}
+                </option>
+
+                <option value="ORDER SUCCESSFUL">Order Successful</option>
+
+                <option value="SHIPPED">Shipped</option>
+
+                <option value="DELIVERED">Delivered</option>
+              </select>
+            ) : (
+              txnStatus
+            );
+
+          return {
+            ...item,
+            transaction: {
+              ...item.transaction,
+              txn_status: statusNode,
+              status: txnStatus
+            },
+            key: item.transaction.txn_id,
+          };
+        });
+
+        setData(rows);
+        return;
       }
+
+      /** ---------------- NORMAL TRANSACTION FLOW ---------------- */
+      const rows = result.data.transactions.map((item) => {
+        const statusNode =
+          item.txn_status === "PROCESSING" ? (
+            <select
+              className="bg-transparent"
+              value={item.txn_status}
+              onChange={(e) => handleSelect(e.target.value, item)}
+            >
+              <option disabled hidden value={item.txn_status}>
+                {item.txn_status}
+              </option>
+              <option value="SUCCESS">SUCCESS</option>
+              <option value="FLAGGED">FLAGGED</option>
+            </select>
+          ) : (
+            item.txn_status
+          );
+
+        return {
+          key: item.external_txn_id,
+          "Transaction Id": item.external_txn_id,
+          Quantity: item.qty_g,
+          Amount: item.total_value_rs,
+          Date: new Date(item.created_at).toLocaleString(),
+          user: item.user,
+          meta_data: item.meta_data,
+          Status: statusNode,
+          Notes: <Typography.Text>{item.notes}</Typography.Text>,
+          Rates:
+            item.txn_type === "BUY"
+              ? item.rate_per_g_wo_gst
+              : item.aura_sell_price,
+        };
+      });
+
+      setData(rows);
     } catch (e) {
       console.error(e);
-      if (e?.response?.data?.message) {
-        toast({
-          title: "Error",
-          description: e?.response?.data?.message,
-        });
-      }
+      setLoading(false)
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+      });
+    } finally {
+      setLoading(false)
     }
   }, [
-    // currentPage,
-    // limit,
+    currentPage,
+    limit,
+    url,
+    date.startDate,
+    date.endDate,
     status,
-    // url,
-    // date.startDate,
-    // date.endDate,
-    // columns,
     search.product_name,
   ]);
 
   useEffect(() => {
     fetchList();
-  }, [fetchList,token]);
+  }, [fetchList, token]);
 
   return {
     fetchList,
-    setCurrentPage,
     currentPage,
+    setCurrentPage,
     limit,
     setLimit,
-    setStatus,
     totalPages,
     data,
-    handleSelect,
-    setIsOpen,
-    isOpen,
-    currentTransaction,
     status,
+    setStatus,
     date,
     setDate,
     search,
     setSearch,
+    isOpen,
+    setIsOpen,
+    currentTransaction,
+    loading
   };
 };

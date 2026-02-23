@@ -38,14 +38,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const url = searchParams.get('url') || '';
-    const txn_type = searchParams.get('txn_type') || 'BUY';
-    const offset = searchParams.get('offset') || '0';
-    const limit = searchParams.get('limit') || '10';
-    const startdate = searchParams.get('startdate') || '';
-    const enddate = searchParams.get('enddate') || '';
-    const product_name = searchParams.get('product_name') || '';
+    const { searchParams } = request.nextUrl;
+
+    const phone_number = searchParams.get("phone_number");
+    const txn_type = searchParams.get("txn_type");
+    const txn_status = searchParams.get("txn_status");
+    const offset = searchParams.get("offset") ?? 0;
+    const limit = searchParams.get("limit") ?? 10;
+    const category = searchParams.get("category");
+    const product_name = searchParams.get("product_name");
+
 
     const chrysusApi = axios.create({
       baseURL: process.env.NEXT_PUBLIC_CHRYSUS_URI,
@@ -66,17 +68,23 @@ export async function GET(request: NextRequest) {
       chrysusApi.defaults.headers["X-Auth-Token"] = JSON.stringify(encryptedAccessToken);
     }
 
-    const queryParams = new URLSearchParams({
-      txn_type,
-      offset,
-      limit,
-      startdate,
-      enddate,
-      ...(product_name && { product_name })
-    }).toString();
+    const queryParams = new URLSearchParams(
+      Object.entries({
+        phone_number,
+        txn_type,
+        txn_status,
+        offset: String(offset),
+        limit: String(limit),
+        category,
+        product_name
+      }).filter(([, v]) => v !== null)
+    ).toString();
 
-    const fullUrl = `${url}${queryParams}`;
-    console.log("FULL URL==>", fullUrl)
+    // /admin/v1/transactions?phone_number=&txn_type=BUY&txn_status=ACTIVE&offset=0&limit=5&category=gold_redemption&product_name=GOLD24
+
+
+    const fullUrl = `/admin/v1/transactions?${queryParams}`;
+    console.log("FULL URL==> MAN", fullUrl)
     const response = await chrysusApi.get(fullUrl);
     console.log(response?.data?.transactions?.[0], "RESPONSE")
 

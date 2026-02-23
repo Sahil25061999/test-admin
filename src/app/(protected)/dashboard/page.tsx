@@ -1,58 +1,77 @@
-import React from "react";
+'use client'
+
+import React, { useState, useEffect } from "react";
 import {
   TotalTxnStatsCard,
   UsersStatsCard,
 } from "../../../components/dashboard/index.dashboard.component";
-import Link from "next/link";
-import { createAuthenticatedApi } from "../../../lib/api-utils";
 import { PageHeader } from "../../../components/dashboard/PageHeader";
 
-export default async function Page() {
-  // Server-side data fetching
-  let userCount = 0;
-  let countOfUsersHavingGold = 0;
-  let transactions = {
-    total_buy: 0,
-    total_autopay: 0,
-    total_sell: 0,
-    today_buy_txn: 0,
-    today_sell_txn: 0,
-    today_autopay_txn: 0,
+export default function Page() {
+  const [stats, setStats] = useState({
+    user_count: 0,
+    user_w_gold_grt_zero: 0,
+    user_w_silver_grt_zero: 0,
+    user_w_both_gold_silver: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/stats");
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const result = await res.json();
+      if (result?.success && result?.data) {
+        setStats(result.data);
+      } else {
+        throw new Error("Invalid response structure");
+      }
+    } catch (err) {
+      console.error("Failed to fetch stats:", err);
+      setError("Failed to load statistics. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  try {
-    const chrysusApi = await createAuthenticatedApi();
-    const res = await chrysusApi.get("admin/v1/stats");
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
-    if (res && res.data?.success) {
-      userCount = res.data.data.user.user_count;
-      countOfUsersHavingGold = res.data.data.user.user_w_gold_grt_zero;
-      transactions = res.data.data.transaction;
-    }
-  } catch (error) {
-    console.error("Failed to fetch stats:", error?.response);
-  }
+  if (loading) return <div className="p-4">Loading dashboard...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
 
   return (
-    <main className=" w-full">
+    <main className="w-full">
       <PageHeader
         title="Dashboard"
         subtitle="Overview of key metrics and activity"
       />
 
-      <div className=" grid grid-cols-1 py-4 lg:grid-cols-12 gap-y-4 lg:gap-4">
-        <div className=" md:col-span-6">
-          <UsersStatsCard label={"Users"} stat={45000} />
+      <div className="grid grid-cols-1 py-4 lg:grid-cols-12 gap-y-4 lg:gap-4">
+        <div className="md:col-span-6">
+          <UsersStatsCard label="Users" stat={stats.user_count} />
         </div>
-        <div className=" md:col-span-6">
+        <div className="md:col-span-6">
           <UsersStatsCard
-            label={"Users havings gold"}
-            stat={countOfUsersHavingGold}
+            label="Users having gold"
+            stat={stats.user_w_gold_grt_zero}
           />
         </div>
-        <div className=" col-span-1 md:col-span-full mt-4">
-          <h1>Transactions</h1>
-          <TotalTxnStatsCard transactions={transactions} />
+        <div className="md:col-span-6">
+          <UsersStatsCard
+            label="Users having silver"
+            stat={stats.user_w_silver_grt_zero}
+          />
+        </div>
+        <div className="md:col-span-6">
+          <UsersStatsCard
+            label="Users having both gold and silver"
+            stat={stats.user_w_both_gold_silver}
+          />
         </div>
       </div>
     </main>

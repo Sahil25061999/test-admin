@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 import { PageHeader } from "../../../../components/dashboard/PageHeader";
 import InputField from "../../../../components/ui/InputField";
@@ -11,8 +12,12 @@ export default function Page() {
   const [txnId, setTxnId] = useState("");
   const [txnType, setTxnType] = useState("");
   const { toast } = useToast();
+
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [reconcileLoading, setReconcileLoading] = useState(false);
+
+  /* ------------------ VALIDATION ------------------ */
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -38,20 +43,69 @@ export default function Page() {
   };
 
   const resetForm = () => {
-    setPhone("");
     setTxnId("");
     setTxnType("");
     setFormErrors({});
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  /* ------------------ RECONCILE ------------------ */
 
-    if (!validateForm()) {
+  const handleReconcilePortfolio = async () => {
+    if (!phone) {
+      toast({
+        title: "Error",
+        description: "Enter phone number first",
+        variant: "error",
+      });
       return;
     }
 
+    setReconcileLoading(true);
+
+    try {
+      const res = await fetch("/api/reconcile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone_number: phone,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data?.success) {
+        toast({
+          title: "Success",
+          description: "Portfolio reconciled successfully",
+          variant: "success",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data?.message || "Reconciliation failed",
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong",
+        variant: "error",
+      });
+    } finally {
+      setReconcileLoading(false);
+    }
+  };
+
+  /* ------------------ CANCEL TXN ------------------ */
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
     setLoading(true);
+
     try {
       const res = await fetch("/api/cancel-txn", {
         method: "POST",
@@ -61,7 +115,7 @@ export default function Page() {
         body: JSON.stringify({
           phone_number: phone,
           txn_id: txnId,
-          txn_type: txnType
+          txn_type: txnType,
         }),
       });
 
@@ -73,7 +127,8 @@ export default function Page() {
           description: data?.message,
           variant: "success",
         });
-        resetForm();
+
+        resetForm(); // After success, reconcile button is still clickable
       } else {
         toast({
           title: "Error",
@@ -81,7 +136,7 @@ export default function Page() {
           variant: "error",
         });
       }
-    } catch (e) {
+    } catch (error) {
       toast({
         title: "Error",
         description: "Something went wrong",
@@ -92,6 +147,8 @@ export default function Page() {
     }
   };
 
+  /* ------------------ UI ------------------ */
+
   return (
     <div className="min-h-screen p-6">
       <PageHeader
@@ -101,10 +158,24 @@ export default function Page() {
 
       <div className="py-6">
         <div className="mx-auto bg-white rounded-md my-4 border border-gray-200 p-6 space-y-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Cancel Txn
+
+          {/* Reconcile Button */}
+          <div className="flex justify-end">
+            <button
+              onClick={handleReconcilePortfolio}
+              disabled={reconcileLoading}
+              className="bg-primary text-white px-8 py-2.5 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium"
+            >
+              {reconcileLoading ? "Reconciling..." : "Reconcile Portfolio"}
+            </button>
+          </div>
+
+          <h2 className="text-lg font-semibold text-gray-900">
+            Cancel Transaction
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-5 p-6">
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
               <InputField
@@ -146,19 +217,30 @@ export default function Page() {
                 Transaction Type
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <PillSelect value={txnType} onChange={(value) => {
-                setTxnType(value);
 
-              }} options={[
-                { value: "REDEEM-GOLD", label: "Redeem Gold" },
-                { value: "REDEEM-SILVER", label: "Redeem Silver" },
-                { value: "SELL", label: "Sell" },
-              ]} />
+              <PillSelect
+                value={txnType}
+                onChange={(value) => {
+                  setTxnType(value);
+                  if (formErrors.txnType) {
+                    setFormErrors({ ...formErrors, txnType: "" });
+                  }
+                }}
+                options={[
+                  { value: "REDEEM-GOLD", label: "Redeem Gold" },
+                  { value: "REDEEM-SILVER", label: "Redeem Silver" },
+                  { value: "SELL", label: "Sell" },
+                ]}
+              />
+
+              {formErrors.txnType && (
+                <p className="text-sm text-red-500 mt-1">
+                  {formErrors.txnType}
+                </p>
+              )}
             </div>
 
-            <div className="pt-4 flex justify-end gap-3">
-
-
+            <div className="pt-4 flex justify-end">
               <button
                 type="submit"
                 disabled={loading}
@@ -174,6 +256,7 @@ export default function Page() {
                 )}
               </button>
             </div>
+
           </form>
         </div>
       </div>

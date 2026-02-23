@@ -4,8 +4,8 @@ import { Table as AntTable } from "antd";
 
 
 
-export function Table({rowSelection=null, columns, data, ...props }) {
-  
+export function Table({ rowSelection = null, columns, data, ...props }) {
+
   return (
     <AntTable
       {...props}
@@ -15,8 +15,8 @@ export function Table({rowSelection=null, columns, data, ...props }) {
       rootClassName={"table_paginator"}
       columns={columns as any}
       dataSource={data}
-      // onChange={handleFilters}
-      // pagination={handlePagination}
+    // onChange={handleFilters}
+    // pagination={handlePagination}
     />
   );
 }

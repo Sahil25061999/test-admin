@@ -45,6 +45,14 @@ export async function GET(request: NextRequest) {
     const new_status = searchParams.get('new_status') || '';
     const notes = searchParams.get('notes') || '';
 
+
+    console.log(action, "ACTION")
+    console.log(product_name, "PRODUCT NAME")
+    console.log(txn_id, "TXN ID")
+    console.log(new_status, "NEW STATUS")
+    console.log(notes, "NOTES")
+    console.log(searchParams, "SEARCH PARAMS")
+
     const chrysusApi = axios.create({
       baseURL: process.env.NEXT_PUBLIC_CHRYSUS_URI,
       headers: {
@@ -86,7 +94,10 @@ export async function GET(request: NextRequest) {
         );
     }
 
+    console.log(endpoint, "ENDPOINT")
+    console.log(params, "PARAMS")
     const response = await chrysusApi.get(endpoint, { params });
+    console.log(response, "RESPONSE_______fun")
 
     return NextResponse.json(response.data);
   } catch (error: any) {

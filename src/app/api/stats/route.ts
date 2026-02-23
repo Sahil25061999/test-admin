@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
-    
+
     const errorResponse = handleApiError(error, "Stats");
     return NextResponse.json(
       errorResponse,
       { status: error.response?.status || 500 }
     );
   }
-} 
+}

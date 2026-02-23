@@ -7,7 +7,7 @@ export function UsersStatsCard({ label, stat }) {
     <div className=" w-full border-l-[5px] border-primary p-6 flex flex-col justify-end items-start text-floral-white rounded-sm bg-stone-100">
       <p className="text-primary w-full opacity-75 ">{label}</p>
       <div className=" mt-1">
-        <h1 className=" text-[100px] font-bold ">{stat.toLocaleString("en")}</h1>
+        <h1 className=" text-[50px] font-bold ">{stat.toLocaleString("en")}</h1>
       </div>
     </div>
   );

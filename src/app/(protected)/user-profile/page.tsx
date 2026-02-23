@@ -10,6 +10,7 @@ import { PageHeader } from "../../../components/dashboard/PageHeader";
 import { useAppContext } from "../../../context/app";
 import Sidebar from "../../../components/ui/Sidebar";
 import AddBankAccount from "../../../components/bank/AddBankAccount";
+import AddInWallet from "../../../components/AddInWallet";
 
 
 
@@ -311,8 +312,10 @@ const InfoRow = ({
 const StatusBadge = ({ status }: { status: string }) => {
   const colors: Record<string, string> = {
     ACTIVE: "bg-emerald-100 text-emerald-700",
+    SUCCESS: "bg-emerald-100 text-emerald-700",
     PAUSED: "bg-amber-100 text-amber-700",
     CANCELLED: "bg-red-100 text-red-700",
+    FAILED: "bg-red-100 text-red-700",
   };
 
   return (
@@ -323,6 +326,53 @@ const StatusBadge = ({ status }: { status: string }) => {
     >
       {status}
     </span>
+  );
+};
+
+
+type FilterTab = {
+  label: string;
+  value: string;
+};
+
+type FilterGroupProps = {
+  title: string;
+  tabs: FilterTab[];
+  value: string;
+  onChange: (val: string) => void;
+};
+
+const FilterGroup = ({ title, tabs, value, onChange }: FilterGroupProps) => {
+  return (
+    <div className="flex flex-col mb-2 gap-2">
+      <span className="text-xs font-medium text-slate-500 uppercase">
+        {title}
+      </span>
+
+      <div className="flex flex-wrap gap-2">
+        {tabs.map((tab) => {
+          const isActive = value === tab.value;
+
+          return (
+            <button
+              key={tab.value}
+              onClick={() => onChange(tab.value)}
+              className={`
+                px-4 py-2 rounded-md text-sm
+                transition-all duration-200
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40
+                ${isActive
+                  ? "bg-primary text-white shadow-sm"
+                  : "bg-white text-slate-600 hover:bg-slate-100"
+                }
+              `}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
@@ -349,9 +399,92 @@ export default function UserProfileViewer() {
   const [isEditingKyc, setIsEditingKyc] = useState(false);
   const [editedUserKycData, setEditedUserKycData] = useState<any>(null);
   const [kycFormErrors, setKycFormErrors] = useState<Record<string, string>>({});
+  const [allTransactions, setAllTransactions] = useState<any>([]);
+  const [allTransactionsLoading, setAllTransactionsLoading] = useState(false);
+  const [selectedType, setSelectedType] = useState("BUY")
+  const [selectedStatus, setSelectedStatus] = useState("SUCCESS")
+  const [selectedSubTxnType, setSelectedSubTxnType] = useState("SAVINGS")
+  const [selectedProduct, setSelectedProduct] = useState("GOLD24")
+  const [selectedPage, setSelectedPage] = useState(1)
+  const [totalTxns, setTotalTxns] = useState(0)
+  const [txns, setTxns] = useState([])
+  const [currentLimit, setCurrentLimit] = useState(10)
 
 
   const { setSidebarContent, setSidebarOpen, setSidebarTitle } = useAppContext()
+
+
+
+  const TRANS_STATUS = [
+    {
+      label: "Success",
+      value: "SUCCESS"
+    },
+    {
+      label: "Cancelled",
+      value: "CANCELLED"
+    },
+    {
+      label: "Pending",
+      value: "PENDING"
+    },
+    {
+      label: "Processing",
+      value: "PROCESSING"
+    }
+  ]
+
+
+  const TRANS_PRODUCT = [
+    {
+      label: "Gold",
+      value: "GOLD24"
+    },
+    {
+      label: "Silver",
+      value: "SILVER24"
+    }
+  ]
+
+  const TRANS_TYPE = [
+    {
+      label: "Buy",
+      value: "BUY"
+    },
+    {
+      label: "Sell",
+      value: "SELL"
+    },
+    {
+      label: "Autopay",
+      value: "AUTOPAY"
+    }, {
+      label: "Referral Reward",
+      value: "REFERRAL_REWARD"
+    }, {
+      label: "Deposit",
+      value: "DEPOSIT"
+    },
+    {
+      label: "Reward",
+      value: "REWARD"
+    }
+  ]
+
+
+  const SUB_TXN_TYPE = [
+    {
+      label: "Savings",
+      value: "SAVINGS"
+    },
+    {
+      label: "Gold Redemption",
+      value: "GOLD_REDEMPTION"
+    }, {
+      label: "Silver Redemption",
+      value: "SILVER_REDEMPTION"
+    }
+  ]
 
 
 
@@ -400,6 +533,13 @@ export default function UserProfileViewer() {
     setSidebarOpen(true)
     setSidebarTitle("Add Bank Account")
     setSidebarContent(<AddBankAccount onSuccess={handleSearch} />)
+  }
+
+
+  const handleAddInWallet = async () => {
+    setSidebarOpen(true)
+    setSidebarTitle("Add In Wallet")
+    setSidebarContent(<AddInWallet phone_number={phone} onSuccess={handleSearch} />)
   }
 
 
@@ -471,6 +611,7 @@ export default function UserProfileViewer() {
       dob: formattedDOB,
       referral_code: userData?.user?.referral_code,
       state: userData?.user?.state,
+
     });
   };
 
@@ -613,10 +754,14 @@ export default function UserProfileViewer() {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
-    return new Date(dateStr).toLocaleDateString('en-IN', {
+    return new Date(dateStr).toLocaleString('en-IN', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
     });
   };
 
@@ -769,6 +914,62 @@ export default function UserProfileViewer() {
   const displayNomineeData = isEditingNominee ? editedNomineeData : { first_name: userData?.nominee?.first_name, last_name: userData?.nominee?.last_name, phone_number: userData?.nominee?.phone_number, relationship: userData?.nominee?.relationship };
   console.log(editedNomineeData, "editedNomineeData")
   console.log(editedUserKycData, "editedUserKycData")
+
+
+  useEffect(() => {
+    if (!phone) return;
+
+    const fetchTxns = async () => {
+      setAllTransactionsLoading(true);
+      try {
+        const params = new URLSearchParams({
+          phone_number: phone,
+          txn_type: selectedType,
+          txn_status: selectedStatus,
+          offset: String((selectedPage - 1) * currentLimit),
+          limit: String(currentLimit),
+          product_name: selectedProduct,
+          category: selectedSubTxnType,
+        });
+
+        const response = await fetch(`/api/all-transactions?${params.toString()}`, {
+          method: "GET",
+        });
+
+        const data = await response.json();
+        console.log(data, "SAAAA")
+        if (data?.success) {
+          if (selectedSubTxnType === "SAVINGS") {
+            setTxns(data?.data?.transactions || [])
+            setTotalTxns(data?.data?.counts?.total || 0)
+          }
+          else if (selectedSubTxnType === "GOLD_REDEMPTION") {
+            setTxns(data?.data?.gold_redemptions || [])
+            setTotalTxns(data?.data?.counts?.total || 0)
+          }
+          else if (selectedSubTxnType === "SILVER_REDEMPTION") {
+            setTxns(data?.data?.silver_redemptions || [])
+            setTotalTxns(data?.data?.counts?.total || 0)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching transactions:", error);
+        setTxns([]);
+        setTotalTxns(0);
+      } finally {
+        setAllTransactionsLoading(false);
+      }
+    };
+
+    fetchTxns();
+  }, [selectedStatus, selectedType, phone, selectedProduct, selectedSubTxnType, selectedPage]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setSelectedPage(1);
+  }, [selectedStatus, selectedType, selectedProduct, selectedSubTxnType]);
+
+  console.log(selectedStatus, selectedType)
   return (
     <div className="min-h-screen p-6 ">
       <PageHeader
@@ -859,10 +1060,11 @@ export default function UserProfileViewer() {
             </div>
 
 
-            <div className="flex items-center justify-between bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 rounded-md p-4">
+            <div className="flex items-start justify-between bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 rounded-md p-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-indigo-600 rounded-full">
                   <Wallet className="w-5 h-5 text-white" />
+
                 </div>
                 <div>
                   <p className="text-sm text-indigo-700 font-medium">Aura Wallet</p>
@@ -871,16 +1073,25 @@ export default function UserProfileViewer() {
                       minimumFractionDigits: 2,
                     })}
                   </p>
+                  <span
+                    className={`text-xs px-3 py-1 rounded-full font-medium ${userData?.fiat_wallet.is_active
+                      ? "bg-emerald-100 text-emerald-700"
+                      : "bg-red-100 text-red-700"
+                      }`}
+                  >
+                    {userData?.fiat_wallet?.is_active ? "Active" : "Inactive"}
+                  </span>
                 </div>
               </div>
-              <span
-                className={`text-xs px-3 py-1 rounded-full font-medium ${userData?.fiat_wallet.is_active
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-red-100 text-red-700"
-                  }`}
-              >
-                {userData?.fiat_wallet?.is_active ? "Active" : "Inactive"}
-              </span>
+              <div>
+                <button
+                  onClick={handleAddInWallet}
+                  className="text-xs px-4 py-2 rounded-md font-medium bg-primary text-white"
+                >
+                  Add Amount
+                </button>
+              </div>
+
             </div>
           </div>
 
@@ -1395,6 +1606,246 @@ export default function UserProfileViewer() {
 
 
 
+          </div>
+        )}
+
+        {userData && phone && (
+          <div className="mt-6  mx-auto">
+            <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h3 className="text-sm font-semibold text-gray-900 tracking-wide">All Transactions</h3>
+              </div>
+
+              <div className="p-6">
+                <div className="flex flex-col gap-6 mb-6">
+                  <div className="flex flex-wrap gap-4">
+                    <FilterGroup
+                      title="Transaction Type"
+                      tabs={TRANS_TYPE}
+                      value={selectedType}
+                      onChange={setSelectedType}
+                    />
+
+                    <FilterGroup
+                      title="Status"
+                      tabs={TRANS_STATUS}
+                      value={selectedStatus}
+                      onChange={setSelectedStatus}
+                    />
+                  </div>
+
+                  <FilterGroup
+                    title="Category"
+                    tabs={SUB_TXN_TYPE}
+                    value={selectedSubTxnType}
+                    onChange={setSelectedSubTxnType}
+                  />
+
+                  <FilterGroup
+                    title="Product"
+                    tabs={TRANS_PRODUCT}
+                    value={selectedProduct}
+                    onChange={setSelectedProduct}
+                  />
+                </div>
+
+                {allTransactionsLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
+                      <table className="min-w-[500px] w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Transaction ID
+                            </th>
+                            {selectedType === "AUTOPAY" && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Payment ID
+                            </th>}
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Type
+                            </th>
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Quantity (g)
+                            </th>
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Total Amount (₹)
+                            </th>
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Rate / g (₹)
+                            </th>
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Payment Mode
+                            </th>
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Gateway
+                            </th>
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Created At
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Updated At
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {txns.length > 0 ? (
+                            txns.map((txn: any) => (
+                              <tr key={txn.id} className="hover:bg-gray-50 transition">
+
+                                {/* Transaction ID */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                                  {txn.external_txn_id}
+                                </td>
+
+                                {
+                                  txn.txn_type === "AUTOPAY" && (
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                                      {txn.payment_id}
+                                    </td>
+                                  )
+                                }
+
+
+                                {/* Type */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                  {txn.txn_type}
+                                </td>
+
+                                {/* Gold Quantity */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {txn.qty_g} g
+                                </td>
+
+                                {/* Total Amount */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                                  ₹{txn.total_value_rs.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                  })}
+                                </td>
+
+                                {/* Rate per Gram */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                  ₹{txn.rate_per_g_wo_gst.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                  })}
+                                </td>
+
+                                {/* Payment Mode */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                  {txn.payment_mode}
+                                </td>
+
+                                {/* Gateway */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                  {txn.gateway || "—"}
+                                </td>
+
+                                {/* Status */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <StatusBadge status={txn.txn_status} />
+                                </td>
+
+                                {/* Date */}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {formatDate(txn.created_at)}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {formatDate(txn.updated_at)}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
+                                No transactions found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+
+                      </table>
+                    </div>
+
+                    {/* Pagination */}
+                    {totalTxns > 10 && (
+                      <div className="mt-6 flex items-center justify-between">
+                        <div className="text-sm text-gray-700">
+                          Showing <span className="font-medium">{(selectedPage - 1) * 10 + 1}</span> to{" "}
+                          <span className="font-medium">
+                            {Math.min(selectedPage * 10, totalTxns)}
+                          </span>{" "}
+                          of <span className="font-medium">{totalTxns}</span> results
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedPage((p) => Math.max(1, p - 1))}
+                            disabled={selectedPage === 1}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                          >
+                            Previous
+                          </button>
+
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: Math.ceil(totalTxns / 10) }, (_, i) => i + 1)
+                              .filter((page) => {
+                                const totalPages = Math.ceil(totalTxns / 10);
+                                return (
+                                  page === 1 ||
+                                  page === totalPages ||
+                                  Math.abs(page - selectedPage) <= 1
+                                );
+                              })
+                              .map((page, index, array) => (
+                                <React.Fragment key={page}>
+                                  {index > 0 && array[index - 1] !== page - 1 && (
+                                    <span className="px-2 text-gray-500">...</span>
+                                  )}
+                                  <button
+                                    onClick={() => setSelectedPage(page)}
+                                    className={`px-4 py-2 text-sm font-medium rounded-lg transition ${selectedPage === page
+                                      ? "bg-primary text-white"
+                                      : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                                      }`}
+                                  >
+                                    {page}
+                                  </button>
+                                </React.Fragment>
+                              ))}
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              setSelectedPage((p) => Math.min(Math.ceil(totalTxns / 10), p + 1))
+                            }
+                            disabled={selectedPage === Math.ceil(totalTxns / 10)}
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

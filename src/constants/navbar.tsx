@@ -123,12 +123,12 @@ export const NAVLINKS = [
     icon: Coins,
     type: "dropdown",
     options: [
-      // {
-      //   route: "Gold Redemption",
-      //   icon: Database,
-      //   href: "/gold/transactions/gold-redemption",
-      //   permission: PERMISSIONS.GOLD_REDEMPTION,
-      // },
+      {
+        route: "Gold Redemption",
+        icon: Database,
+        href: "/gold/transactions/gold-redemption",
+        permission: PERMISSIONS.GOLD_REDEMPTION,
+      },
       // {
       //   route: "Sell",
       //   icon: Tag,
@@ -168,12 +168,12 @@ export const NAVLINKS = [
     icon: BadgeIndianRupee,
     type: "dropdown",
     options: [
-      // {
-      //   route: "Silver Redemption",
-      //   icon: Database,
-      //   href: "/silver/transactions/silver-redemption",
-      //   permission: PERMISSIONS.SILVER_REDEMPTION,
-      // },
+      {
+        route: "Silver Redemption",
+        icon: Database,
+        href: "/silver/transactions/silver-redemption",
+        permission: PERMISSIONS.SILVER_REDEMPTION,
+      },
       // {
       //   route: "Sell",
       //   icon: Tag,

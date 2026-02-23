@@ -1,19 +1,22 @@
 "use client";
 
 import { useState, Fragment, useMemo } from "react";
+import axios from "axios";
 import { Dialog, Transition } from "@headlessui/react";
-import { useFetchList } from "../hooks/useFetchList";
-import { GOLD_REDEMPTION_TXN_COLUMNS as columns } from "../constants/index.constants";
-import { DateFilter, TransactionSearch } from "../components/index.component";
+import { useFetchList } from "../../../../../hooks/useFetchList";
+import { GOLD_REDEMPTION_TXN_COLUMNS as columns } from "../../../../../constants/index.constants";
+import { DateFilter, TransactionSearch } from "../../../../../components/index.component";
 import { useRouter } from "next/navigation";
-import { useToast } from "../context/toast.context";
+import { CHRYSUS_API, MOI_API } from "../../../../../config";
+import { useToast } from "../../../../../context/toast.context";
 import { ArrowDownIcon, Bars2Icon, PencilIcon } from "@heroicons/react/24/outline";
-import { useBulkTxn } from "../context/bulkTxn.context";
-import { useTable } from "../hooks/useTable";
-import { Table } from "../components/Table";
-import { PageHeader } from "./dashboard/PageHeader";
+import { useBulkTxn } from "../../../../../context/bulkTxn.context";
+import { useTable } from "../../../../../hooks/useTable";
+import { Table } from "../../../../../components/Table";
+import SilverRedemption from "../../../../../components/silver-redemption";
+import { useAuthAxios } from "../../../../../hooks/useAuthAxios";
 
-export default function SilverRedemption() {
+export default function Page() {
   const [notes, setNotes] = useState("");
   const { toast } = useToast();
   const router = useRouter();
@@ -34,38 +37,39 @@ export default function SilverRedemption() {
     setDate,
     search,
     setSearch,
-    loading
   } = useFetchList({ url: "/redemption/v1/status/txns?product_name=SILVER24&txn_status=PROCESSING&", columns });
-  const [processing, setProcessing] = useState(false);
+
   const { selectedRowKeys, rowSelection } = useTable();
   const { updateBulkTxn } = useBulkTxn();
-
   const closeModal = () => {
     setIsOpen(() => false);
   };
+  const apiInstance = useAuthAxios()
 
   const approveStatus = async () => {
+    let token: string;
+    // if (typeof window !== undefined) {
+    //   token = localStorage.getItem("token");
+    // }
     setIsOpen(() => false);
+    // console.log(currentTransaction);
     try {
-      const params = {
-        action: 'execute',
-        product_name: 'SILVER24',
-        txn_id: currentTransaction.transaction.txn_id,
-        new_status: currentTransaction.statusToSet,
-        notes,
-      };
-      const searchParams = new URLSearchParams(params);
-      const res = await fetch(`/api/redemption?${searchParams.toString()}`);
-      const data = await res.json();
-
-      if (data?.success) {
-        fetchList();
-      } else {
-        toast({ description: data?.message || "Something went wrong" });
-      }
+      const res = await apiInstance.get("redemption/v1/execute/txns?product_name=SILVER24", {
+        params: {
+          txn_id: currentTransaction.transaction.txn_id,
+          new_status: currentTransaction.statusToSet,
+          notes,
+        },
+      });
+      // console.log("STATUS==>", res);
+      fetchList();
     } catch (e) {
       console.error(e);
-      toast({ description: "Something went wrong" });
+      if (e?.response?.message) {
+        toast({ description: e?.response?.message });
+      } else {
+        toast({ description: "Something went wrong" });
+      }
     }
   };
 
@@ -91,41 +95,32 @@ export default function SilverRedemption() {
 
   async function handleDownloadInvoice(txnid) {
     try {
-      const res = await fetch(`/api/invoices/${txnid}`);
-      const data = await res.json();
-      if (data?.success) {
-        window.open(data.data[0].downloadLink, "_blank").focus();
+      const res = await apiInstance.get(`/invoices/${txnid}`);
+      if (res?.data?.success) {
+        // document.location.href = res.data.data[0].downloadLink
+        window.open(res.data.data[0].downloadLink, "_blank").focus();
+        // router.push(res.data.data[0].downloadLink, { _target: "blank" });
       }
     } catch (e) {
-      toast({
-        title: "Error",
-        description: "Something went wrong",
-      });
+      if (e?.response?.message) {
+        toast({
+          title: "Error",
+          description: e.reponse.message,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Something went wrong",
+        });
+      }
     }
   }
 
-  const handleProcessSellTxn = async () => {
-    try {
-      setProcessing(true);
-      const params = { action: 'process' };
-      const searchParams = new URLSearchParams(params);
-      const res = await fetch(`/api/redemption?${searchParams.toString()}`);
-      const data = await res.json();
-      if (data?.success) {
-        window.open(data.data?.url?.s3_url, "_blank");
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-
-  const handleBulkUpdate = () => {
+  async function handleBulkUpdate() {
+    router.push("silver/transactions/silver-redemption/status-update");
+    // localStorage.setItem("bulk-update-id", JSON.stringify(selectedData));
     updateBulkTxn(selectedData);
-    router.push("silver-redemption/status-update");
-  };
+  }
 
   const selectedData = useMemo(() => {
     return data.filter(({ key }) => selectedRowKeys.includes(key));
@@ -133,42 +128,39 @@ export default function SilverRedemption() {
 
   return (
     <>
-      <PageHeader title="Silver Redemption" subtitle="Manage silver redemption transactions" />
+      <SilverRedemption />
+    </>
+  );
+}
 
 
 
+{/* <div>
+        <h1>Silver Redemption</h1>
+      </div>
 
-
-      <div className="flex justify-end gap-x-2">
-
-        <button
-          className="my-4 p-4 bg-primary text-white font-medium rounded-md"
-          onClick={handleProcessSellTxn}
-        >
-          {processing ? "Processing..." : "Process redemption Txn"}
+      <div className=" flex gap-x-2">
+      {selectedRowKeys && selectedRowKeys.length > 0 ? (
+        <><button onClick={handleBulkUpdate} className=" flex items-center gap-x-1 p-4 bg-purple-500 rounded-full text-white font-semibold my-3">
+          <div  className=" bg-white rounded-full p-1"><PencilIcon color="#333" height={20} width={20}/></div>
+          <span className=" inline-block">Bulk Update Status</span>
         </button>
+        <button onClick={handleBulkUpdate} className=" flex items-center gap-x-1 p-4 bg-purple-500 rounded-full text-white font-semibold my-3">
+          <div  className=" bg-white rounded-full p-1">
 
-        {selectedRowKeys.length > 0 && (
-          <>
-            <button
-              onClick={handleBulkUpdate}
-              className="my-4 p-4 bg-primary text-white font-medium rounded-md"
-            >
-
-              <span>Bulk Update Status</span>
-            </button>
-
-          </>
-        )}
+            <ArrowDownIcon color="#333" height={20} width={20}/></div>
+          <span className=" inline-block">Download Data</span>
+        </button>
+       </>
+      ) : null}
       </div>
       <section className="relative overflow-x-auto w-full">
         <Table
           rowSelection={rowSelection}
           columns={columns as any}
           data={data}
-          loading={loading}
-        // onChange={handleFilters}
-        // pagination={handlePagination}
+          // onChange={handleFilters}
+          // pagination={handlePagination}
         />
       </section>
 
@@ -234,7 +226,4 @@ export default function SilverRedemption() {
             </div>
           </div>
         </Dialog>
-      </Transition>
-    </>
-  );
-}
+      </Transition> */}
